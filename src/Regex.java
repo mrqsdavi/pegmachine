@@ -10,9 +10,6 @@ public class Regex {
 	
 	private RegexDelegate delegate;
 	
-	private int posicaoInicialMatch;
-	private int posicaoFinalMatch;
-	
 	private ArrayList<String> captures = new ArrayList<String>();
 	
 	private HashMap<Instrucao, String> labelsIntrucao;

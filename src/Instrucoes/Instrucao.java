@@ -1,18 +1,52 @@
 package Instrucoes;
 
-public interface Instrucao {
+public abstract class Instrucao {
 	
-	public TipoInstrucao getTipoInstrucao();
-	public IChar IChar();
-	public IChoice IChoice();
-	public ICommit ICommit();
-	public IAny IAny();
-	public ICharset ICharset();
-	public IReturn IReturn();
-	public ICall ICall();
-	public IJump IJump();
-	public IEnd IEnd();
-	public IFail IFail();
-	public ICapture ICapture();
+	public TipoInstrucao getTipoInstrucao(){
+		return null;
+	}
+	
+	public IChar IChar(){
+		return null;
+	}
+	public IChoice IChoice(){
+		return null;
+	}
+	
+	public ICommit ICommit(){
+		return null;
+	}
+	
+	public IAny IAny(){
+		return null;
+	}
+	
+	public ICharset ICharset(){
+		return null;
+	}
+	
+	public IReturn IReturn(){
+		return null;
+	}
+	
+	public ICall ICall(){
+		return null;
+	}
+	
+	public IJump IJump(){
+		return null;
+	}
+	
+	public IEnd IEnd(){
+		return null;
+	}
+	
+	public IFail IFail(){
+		return null;
+	}
+	
+	public ICapture ICapture(){
+		return null;
+	}
 	
 }

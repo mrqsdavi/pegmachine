@@ -5,7 +5,6 @@ import java.util.Scanner;
 import Estruturas.Concatenacao;
 import Estruturas.EscolhaOrdenada;
 import Estruturas.Gramatica;
-import Estruturas.Padrao;
 import Estruturas.Ponto;
 import Estruturas.Self;
 import Estruturas.Sequencia;

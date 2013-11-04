@@ -1,9 +1,9 @@
-import java.util.ArrayList;
+/*import java.util.ArrayList;
 
 import Estruturas.Conjunto;
 import Estruturas.EscolhaOrdenada;
 import Estruturas.Padrao;
-import static java.util.Arrays.asList;
+import static java.util.Arrays.asList;*/
 
 
 public class test {
@@ -17,13 +17,13 @@ public class test {
 		assert(regex.match("'a' / !.", "b") == null);
 		assert(regex.match("'a' / ''", "b") == 1);
 		
-		assert(regex.match("(!.)'a'", "a") == null); // VER POR QUE NÃO FUNCIONA regex.match("!.'a'", "a");
+		assert(regex.match("(!.)'a'", "a") == null); // VER POR QUE N��O FUNCIONA regex.match("!.'a'", "a");
 		assert(regex.match("'''a'", "a") == 2);
 		assert(regex.match("'a'!.", "a") == null);
 		assert(regex.match("'a'''", "a") == 2);
 		
-		//Sem consumo do texto OBS: Está igual ao exemplo anterior
-		assert(regex.match("(!.)'a'", "a") == null); // VER POR QUE NÃO FUNCIONA regex.match("!.'a'", "a");
+		//Sem consumo do texto OBS: Est�� igual ao exemplo anterior
+		assert(regex.match("(!.)'a'", "a") == null); // VER POR QUE N��O FUNCIONA regex.match("!.'a'", "a");
 		assert(regex.match("'''a'", "a") == 2);
 		assert(regex.match("'a'!.", "a") == null);
 		assert(regex.match("'a'''", "a") == 2);
@@ -47,12 +47,12 @@ public class test {
 		assert(regex.match("'alu'", "alo") == null);
 		assert(regex.match("''","") == 1);
 		
-		Conjunto digit = new Conjunto("0123456789");
+		/*Conjunto digit = new Conjunto("0123456789");
 		Conjunto upper = new Conjunto("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
 		Conjunto lower = new Conjunto("abcdefghijklmnopqrstuvwxyz");
 		Padrao letter = new EscolhaOrdenada(new ArrayList<Padrao>(asList(upper, lower)));
 		Padrao alpha = new EscolhaOrdenada(new ArrayList<Padrao>(asList(letter, digit)));
-
+		 */
 		
 		//grammar with a long call chain before left recursion
 		/*regex.match("A <- BCDA"
