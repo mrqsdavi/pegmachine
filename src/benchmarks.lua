@@ -14,7 +14,11 @@ local any = lpeg.P(1)
 function search (p)
 	local sch = lpeg.P{ lpeg.P(p) + any * lpeg.V(1) }
 	local res = lpeg.match(sch, bible) 
-	if res then res = res - string.len(p) end
+	if res then
+		res = res - string.len(p)
+	else
+		res = 0
+	end
 	return res
 end
 
@@ -33,7 +37,7 @@ function benchmark (p)
 	print(string.format("%s: %d - %fms", p, position ,(endTime - startTime)))
 end
 
---benchmark("@the")
+benchmark("@the")
 benchmark("Omega")
 benchmark("Alpha")
 benchmark("amethyst")
