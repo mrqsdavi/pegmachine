@@ -1,5 +1,7 @@
 import java.io.File;
 import java.io.IOException;
+import java.io.ObjectInputStream.GetField;
+import java.net.URL;
 import java.util.Scanner;
 
 import Estruturas.Concatenacao;
@@ -17,10 +19,11 @@ public class Benchmarcks {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 
+		String path = System.getProperty("user.dir") + "/src/bible.txt";
 		bibleText = null;
 		
 		try {
-			bibleText = readFile("/Volumes/Arquivos/Dropbox/TCC/PEG/src/bible.txt");
+			bibleText = readFile(path);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
