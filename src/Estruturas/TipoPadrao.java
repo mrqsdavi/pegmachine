@@ -1,0 +1,17 @@
+package Estruturas;
+
+public enum TipoPadrao {
+
+	SEQUENCIA,
+	CADEIA_VAZIA,
+	CONCATENACAO,
+	REPETICAO,
+	PONTO,
+	CONJUNTO,
+	ESCOLHA_ORDENADA,
+	GRAMATICA,
+	CAPTURA,
+	NAO,
+	SELF
+	
+}
