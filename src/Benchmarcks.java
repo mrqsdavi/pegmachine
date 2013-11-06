@@ -1,7 +1,5 @@
 import java.io.File;
 import java.io.IOException;
-import java.io.ObjectInputStream.GetField;
-import java.net.URL;
 import java.util.Scanner;
 
 import Estruturas.Concatenacao;
@@ -55,11 +53,11 @@ public class Benchmarcks {
 		eo.addPadrao(c);
 		g.setPadrao(eo);
                 
-                Integer position = r.match(g, texto);
+        Integer position = r.match(g, texto);
                 
-                if(position == null){
-                    return 0;
-                }
+        if(position == null){
+        	return 0;
+        }
                 
 		return position - padraoTexto.length();
 	}

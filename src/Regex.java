@@ -413,7 +413,7 @@ public class Regex {
 					tamanhoTextoCasado++;
 					posicaoNoTexto++;
 				}else{
-					//System.out.println("Falhou ao comparar no conjunto: "+texto.charAt(posicaoNoTexto));
+					//System.out.println("Falhou ao comparar no conjunto: "+texto.charAt(posicaoNoTexto)+" "+instrucaoAtual.ICharset().getSet());
 					falhou = true;
 				}
 				
@@ -541,6 +541,7 @@ public class Regex {
 						desvioFalha.remove(desvioFalha.size() - 1);
 						instrucaoAtual = instrucoesLabel.get(labelDesvio);
 						i = instrucoes.indexOf(instrucaoAtual);
+						
 						//System.out.println("Tamanho "+estadoMaquina.getTamanhoTextoCasado());
 						continue;
 					}
@@ -632,8 +633,7 @@ public class Regex {
 		Regex regex = new Regex();
 		//regex.match(gramatica, "aaaaaaaannnnnnnnn");
 		
-		regex.match("S <- '' / 'ab'D'vd''df'"
-				+ "D <- '2'","abbvd") ;
+		System.out.println("Texto Casado " + regex.match(".*", "aaaaaaa"));
 		
 	}
 	
