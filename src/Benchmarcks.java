@@ -5,6 +5,7 @@ import java.util.Scanner;
 import Estruturas.Concatenacao;
 import Estruturas.EscolhaOrdenada;
 import Estruturas.Gramatica;
+import Estruturas.Padrao;
 import Estruturas.Ponto;
 import Estruturas.Self;
 import Estruturas.Sequencia;
@@ -27,33 +28,46 @@ public class Benchmarcks {
 			e.printStackTrace();
 		}
 		
-	    benchmark("@the");
-	    benchmark("Omega");
-	    benchmark("Alpha");
-	    benchmark("amethysts");
-	    benchmark("heith");
-	    benchmark("eartt");
+	    benchmark("'@the'");
+	    benchmark("'Omega'");
+	    benchmark("'Alpha'");
+	    benchmark("'amethysts'");
+	    benchmark("'heith'");
+	    benchmark("'eartt'");
+	    //benchmark("[A-Za-z ]*");
 		
 	}
 	
 	public static void benchmark(String p){
 		long startTime= System.currentTimeMillis();
-	    int posicao = search(p, bibleText);
+	    int posicao = searchP(p, bibleText);
 	    long endTime = System.currentTimeMillis();
 	    
 	    System.out.println(p+": " + posicao+" - "+(endTime-startTime)+"ms");
 	}
-
-	public static Integer search(String padraoTexto, String texto){
+	
+	public static Integer searchP(String padraoTexto, String texto){
+		
+		String p = "S <- "+padraoTexto+" / .S";
+		
 		Regex r = new Regex();
-		Gramatica g = new Gramatica("S");
-		EscolhaOrdenada eo = new EscolhaOrdenada(new Sequencia(padraoTexto));
-		Concatenacao c = new Concatenacao(new Ponto(1));
-		c.addPadrao(new Self());
-		eo.addPadrao(c);
-		g.setPadrao(eo);
+        
+        Integer position = r.match(p, texto);
                 
-        Integer position = r.match(g, texto);
+        if(position == null){
+        	return 0;
+        }
+                
+		return position - padraoTexto.length();
+	}
+
+	public static Integer searchW(String padraoTexto, String texto){
+		
+		String x = padraoTexto.substring(0,1);
+		String p = "S <- '"+padraoTexto+"'/.~'"+x+"'S";
+		Regex r = new Regex();
+                
+        Integer position = r.match(p, texto);
                 
         if(position == null){
         	return 0;

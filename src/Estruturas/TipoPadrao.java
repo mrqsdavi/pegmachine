@@ -12,6 +12,10 @@ public enum TipoPadrao {
 	GRAMATICA,
 	CAPTURA,
 	NAO,
-	SELF
+	E,
+	OPCIONAL,
+	CHAMADA,
+	SELF,
+	ATE
 	
 }

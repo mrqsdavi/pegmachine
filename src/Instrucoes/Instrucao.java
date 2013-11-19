@@ -17,6 +17,10 @@ public abstract class Instrucao {
 		return null;
 	}
 	
+	public IBackCommit IBackCommit(){
+		return null;
+	}
+	
 	public IAny IAny(){
 		return null;
 	}
@@ -46,6 +50,10 @@ public abstract class Instrucao {
 	}
 	
 	public ICapture ICapture(){
+		return null;
+	}
+	
+	public ISpan ISpan(){
 		return null;
 	}
 	

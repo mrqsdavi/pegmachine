@@ -29,7 +29,7 @@ public class Nao extends Padrao{
 	
 	@Override
 	public String toString(){
-		return "!";
+		return "!("+padrao.toString()+")";
 	}
 
 }

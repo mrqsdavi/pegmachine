@@ -26,13 +26,25 @@ public abstract class Padrao {
 	public Gramatica gramatica() {
 		return null;
 	}
+	public E e() {
+		return null;
+	}
 	public Nao nao() {
+		return null;
+	}
+	public Opcional opcional() {
 		return null;
 	}
 	public Captura captura() {
 		return null;
 	}
 	public Self self(){
+		return null;
+	}
+	public Chamada chamada(){
+		return null;
+	}
+	public Ate ate(){
 		return null;
 	}
 	

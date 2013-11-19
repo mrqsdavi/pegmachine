@@ -1,5 +1,7 @@
 eclipse.preferences.version=1
+encoding//src/Gramatica.cup=UTF-8
 encoding//src/ParserPEG.java=UTF-8
 encoding//src/Regex.java=UTF-8
 encoding//src/benchmarks.lua=UTF-8
+encoding//src/parser.java=UTF-8
 encoding//src/test.java=UTF-8

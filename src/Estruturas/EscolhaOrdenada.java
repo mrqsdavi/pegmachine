@@ -25,7 +25,7 @@ public class EscolhaOrdenada extends Padrao{
 	}
 	
 	public void addPadrao(Padrao padrao){
-		padroes.add(padrao);
+		padroes.add(0, padrao);
 	}
 	
 	public void substituir(Padrao padrao, Padrao novoPadrao){
@@ -51,7 +51,7 @@ public class EscolhaOrdenada extends Padrao{
 		
 		for(int i = 0; i < padroes.size(); i++){
 			Padrao padraoIteracao = padroes.get(i);
-			retorno += padraoIteracao.toString();
+			retorno += "("+padraoIteracao.toString()+")";
 			
 			if(i < padroes.size() - 1){
 				retorno += " /";

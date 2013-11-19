@@ -24,7 +24,7 @@ public class Concatenacao extends Padrao{
 	}
 	
 	public void addPadrao(Padrao padrao){
-		padroes.add(padrao);
+		padroes.add(0, padrao);
 	}
 	
 	@Override
@@ -46,7 +46,7 @@ public class Concatenacao extends Padrao{
 		
 		for(int i = 0; i < padroes.size(); i++){
 			Padrao padraoIteracao = padroes.get(i);
-			retorno += padraoIteracao.toString();
+			retorno += "("+padraoIteracao.toString()+")";
 		}
 		
 		return retorno;		

@@ -28,4 +28,9 @@ public class Captura extends Padrao{
 		return this;
 	}
 	
+	@Override
+	public String toString(){
+		return "{"+padrao.toString()+"}";
+	}
+	
 }
