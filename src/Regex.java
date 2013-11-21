@@ -1,12 +1,8 @@
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 
-import javax.crypto.spec.PSource;
-
-import java_cup.runtime.Scanner;
 import Estruturas.*;
 import Instrucoes.*;
 
@@ -108,6 +104,11 @@ public class Regex {
 			
 			nextLabels.remove(returnLabel);
 			retorno.add(iReturn);
+			
+			for(int i = 0; i < padrao.gramatica().getSubgramaticas().size(); i++){
+				Gramatica subgramatica = padrao.gramatica().getSubgramaticas().get(i);
+				retorno.addAll(instrucoesDoPadrao(subgramatica));
+			}
 			
 		}else if(padrao.getTipo() == TipoPadrao.CAPTURA){
 			
@@ -338,12 +339,22 @@ public class Regex {
 		}else if(padrao.getTipo() == TipoPadrao.OPCIONAL){
 					
 			String choiceNextLabel = nextLabels.get(nextLabels.size() - 1);
+			String labelProximaInstrucao = "L"+(labelsIntrucao.size() + 1);
+			previousLabels.add(labelProximaInstrucao);
+			
 			
 			IChoice iChoice = new IChoice(choiceNextLabel);
 			ICommit iCommit = new ICommit(choiceNextLabel);
 
 			
 			ArrayList<Instrucao> instrucoesRepeticao = instrucoesDoPadrao(padrao.opcional().getPadrao());
+			
+			if(instrucoesRepeticao.size() > 0){
+				Instrucao primeiraInstrucao = instrucoesRepeticao.get(0);
+				labelsIntrucao.put(primeiraInstrucao, labelProximaInstrucao);
+			}
+			
+			previousLabels.remove(labelProximaInstrucao);
 			
 			retorno.add(iChoice);
 			retorno.addAll(instrucoesRepeticao);
@@ -479,10 +490,8 @@ public class Regex {
 			if(instrucaoAtual.getTipoInstrucao() == TipoInstrucao.CHAR){
 				
 				if(posicaoNoTexto >= texto.length()){
-					break;
-				}
-				
-				if(!instrucaoAtual.IChar().isVazio()){
+					falhou = true;
+				}else if(!instrucaoAtual.IChar().isVazio()){
 					if(texto.charAt(posicaoNoTexto) == instrucaoAtual.IChar().getCaracter()){
 						tamanhoTextoCasado++;
 						posicaoNoTexto++;
@@ -520,7 +529,7 @@ public class Regex {
 				tamanhoTextoCasado++;
 				posicaoNoTexto++;
 				
-				//System.out.println("Casou qualquer "+posicaoNoTexto);
+				System.out.println("Casou qualquer "+posicaoNoTexto);
 				
 				if(delegate != null){
 					delegate.rodouInstrucao(instrucaoAtual);
@@ -718,6 +727,7 @@ public class Regex {
 		//System.out.println("Texto Casado: "+ (estadoMaquina.getTamanhoTextoCasado()+1));
 		
 		if(estadoMaquina.getTamanhoTextoCasado() == -1 || desvioChamada.size() > 0){
+			System.out.println(desvioChamada.size()+" Retornou aqui "+estadoMaquina.getTamanhoTextoCasado());
 			return null;
 		}
 		
@@ -763,7 +773,7 @@ public class Regex {
 			instrucoesLabel.put(label, instrucao);
 		}
 		
-		//imprimirInstrucoes(instrucoes, labelsIntrucao);
+		imprimirInstrucoes(instrucoes, labelsIntrucao);
 		//return 0;
 		return rodarInstrucoes(instrucoes, texto, instrucoesLabel);
 	}
@@ -771,7 +781,8 @@ public class Regex {
 	public static void main(String[] args) {
 		
 		Regex regex = new Regex();		
-		System.out.println("Texto Casado " + regex.match("S <- 'davi''teste'*?'bola'*", "davitestetestetbolabola"));
+		System.out.println("Texto Casado " + regex.match("S <- 'davi'D'bola'*\n"
+				+ "D <- 'teste'*?", "davitestebola"));
 		
 	}
 	

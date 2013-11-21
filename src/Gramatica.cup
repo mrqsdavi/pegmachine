@@ -1,0 +1,155 @@
+import java.io.FileInputStream;
+import java_cup.runtime.*;
+import Estruturas.*;
+
+
+action code{:
+    /*int erro = 0;
+
+    public void ImprimeValor(String valor){
+        System.out.println(valor);
+    }
+
+    public enum Erro {
+        FALTA_CHAVE, FALTA_PARENTESE, FALTA_VIRGULA;
+    }
+
+    public void ocorreuErro(Erro erro, int linha, int coluna){
+        switch(erro){
+            case FALTA_CHAVE:
+            System.out.println("Erro chave aberta e n��o fechada na linha "+ linha + " coluna " + coluna);
+            break;
+
+            case FALTA_PARENTESE:
+            System.out.println("Erro sintatico na linha " + linha + " coluna "+ coluna+" - par��ntese experado");
+            break;
+
+            case FALTA_VIRGULA:
+            System.out.println("Erro Sintatico: Falta \";\" na linha "+ linha);
+            break;
+        }
+
+        System.exit(0);
+    }*/
+:};
+
+parser code{:
+
+    public static Padrao padraoFinal;
+
+    public static void main(String argv[]) throws Exception{       
+       if (argv.length == 0) {
+           AnalizadorLexico scanner = new AnalizadorLexico(System.in);
+           parser parser;
+           parser = new parser(scanner);
+           parser.parse();
+       }
+        else {
+            for (int i = 0; i < argv.length; i++) {
+                AnalizadorLexico scanner = null;
+                try {
+                        scanner = new AnalizadorLexico( new java.io.FileReader(argv[i]) );
+                        parser parser;
+                        parser = new parser(scanner);
+                        parser.parse();
+                    }
+                catch (java.io.FileNotFoundException e) {System.out.println("File not found : \""+argv[i]+"\"");}
+                catch (java.io.IOException e) {System.out.println("IO error scanning file \""+argv[i]+"\""); System.out.println(e);}
+                catch (Exception e) {System.out.println("Unexpected exception:");e.printStackTrace();}
+            }
+        }
+    }
+
+    public void syntax_error(Symbol s){
+        if(s.left != -1){
+            System.out.println("Erro Sintatico na linha "+ s.left);
+            System.exit(0);
+        }        
+    }
+    
+    public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception{
+        //System.out.println("Erro "+s.left);
+    }
+:};
+
+/* Terminals (tokens returned by the scanner). */
+terminal            SEQUENCIA, CONJUNTO;
+terminal			ACHA, FCHA;
+terminal			APAR, FPAR;
+terminal			ASTERISCO, MAIS;
+terminal			BARRA;
+terminal			QUALQUER;
+terminal			NOT, AND, OPCIONAL, ATE;
+terminal			ID, ATRIBUICAO, LINHA;
+
+non terminal            Padrao padrao;
+non terminal 			Padrao padraoSimples;
+non terminal			Padrao padraoComposto;
+non terminal			Padrao concatenacao;
+non terminal			Padrao escolha;
+non terminal			Padrao escolhaOrdenada;
+non terminal			Padrao qualquerPadrao;
+non terminal			Padrao gramatica;
+
+precedence left APAR;
+precedence left ACHA;
+precedence left MAIS;
+precedence left OPCIONAL;
+precedence left ASTERISCO;
+precedence left CONJUNTO;
+precedence left SEQUENCIA;
+
+start with padrao;
+
+padrao ::= padraoComposto:p {:parser.padraoFinal = p; RESULT = p;:} | concatenacao:c {:parser.padraoFinal = c; RESULT = c;:} |
+		   escolhaOrdenada:eo {:parser.padraoFinal = eo; RESULT = eo;:} | gramatica:g {:parser.padraoFinal = g; RESULT = g;:};
+
+gramatica ::= ID:id ATRIBUICAO qualquerPadrao:p {:System.out.println("Gramatica 1"); RESULT = new Gramatica((String)id); ((Gramatica)RESULT).setPadrao(p);:} | 
+			  gramatica:g LINHA ID:id ATRIBUICAO qualquerPadrao:p {:System.out.println("Gramatica 2"); Gramatica sub = new Gramatica((String)id); sub.setPadrao(p); ((Gramatica)g).addSubgramatica(sub); RESULT = g;:};
+
+qualquerPadrao ::= escolhaOrdenada:eo {:RESULT = eo;:} |
+				   concatenacao:c {:RESULT = c;:} |
+				   padraoComposto:p {:RESULT = p;:};
+
+escolhaOrdenada ::= escolha:e1 BARRA escolha:e2 {:EscolhaOrdenada eo = new EscolhaOrdenada(e2);
+												  eo.addPadrao(e1);
+												  RESULT = eo;:} |
+					escolha:e BARRA escolhaOrdenada:eo {:((EscolhaOrdenada)eo).addPadrao(e); RESULT = eo;:};
+
+escolha ::= padraoComposto:p {:RESULT = p;:} | concatenacao:c {:RESULT = c;:};
+
+concatenacao ::= padraoComposto:p1 padraoComposto:p2 {:Concatenacao c = new Concatenacao(p2);
+													  c.addPadrao(p1);
+													  RESULT = c;:} |
+				 padraoComposto:p concatenacao:c {:((Concatenacao)c).addPadrao(p); RESULT = c;:};
+
+padraoComposto ::= padraoSimples:p {:RESULT = p;:} |
+		   		   padraoComposto:p ASTERISCO {:
+		   		   
+		   		   if(p.getTipo() == TipoPadrao.CONCATENACAO){
+		   		   }
+		   		   
+		   		   RESULT = new Repeticao(p, TipoRepeticao.ZERO_OU_MAIS);
+		   		   :} |
+				   padraoComposto:p MAIS {:RESULT = new Repeticao(p, TipoRepeticao.ZERO_OU_MAIS);:} |
+				   padraoComposto:p OPCIONAL {:RESULT = new Opcional(p);:} |
+				   ATE SEQUENCIA:s {:String sequencia = ((String)s).substring(1, ((String)s).length()-1); RESULT = new Ate(new Sequencia(sequencia));:} |
+				   NOT padraoComposto:p {:
+				   				if(p.getTipo() == TipoPadrao.E){
+				   					RESULT = new Nao(p.e().getPadrao());
+				   				}else if(p.getTipo() == TipoPadrao.NAO){
+				   					RESULT = new E(p.nao().getPadrao());
+				   				}else{
+				   					RESULT = new Nao(p);
+				   				}:} |
+				   AND padraoComposto:p {:RESULT = new E(p);:} |
+		   		   APAR padrao:p FPAR {:RESULT = p;:} |
+		  	 	   ACHA padrao:p FCHA {:RESULT = new Captura(p);:};
+	   
+padraoSimples ::= 	ID:id {:RESULT = new Chamada((String)id);:} |
+					QUALQUER {:RESULT = new Ponto(1);:} |
+					SEQUENCIA:s {:String sequencia = ((String)s).substring(1, ((String)s).length()-1); RESULT = new Sequencia(sequencia);:} | 
+		   			CONJUNTO:c {:String conjunto = ((String)c).substring(1, ((String)c).length()-1); RESULT = new Conjunto(conjunto);:};
+
+        
+

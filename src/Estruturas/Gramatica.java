@@ -1,12 +1,17 @@
 package Estruturas;
 
+import java.util.ArrayList;
+
 public class Gramatica extends Padrao{
 
 	private String nome;
-	Padrao padrao;
+	private Padrao padrao;
+	
+	private ArrayList<Gramatica> subgramaticas;
 	
 	public Gramatica(String nome){
 		setNome(nome);
+		subgramaticas = new ArrayList<>();
 	}
 	
 	public String getNome() {
@@ -14,6 +19,13 @@ public class Gramatica extends Padrao{
 	}
 
 	public void setNome(String nome) {
+		
+		if(nome != null && padrao != null){
+			Gramatica newSubgramatica = new Gramatica(nome);
+			newSubgramatica.setPadrao(padrao);
+			subgramaticas.add(0, newSubgramatica);
+		}
+		
 		this.nome = nome;
 	}
 	
@@ -40,6 +52,18 @@ public class Gramatica extends Padrao{
 	@Override
 	public String toString(){
 		return "("+nome+" <- "+padrao.toString()+")";
+	}
+
+	public ArrayList<Gramatica> getSubgramaticas() {
+		return subgramaticas;
+	}
+
+	public void setSubgramaticas(ArrayList<Gramatica> subgramaticas) {
+		this.subgramaticas = subgramaticas;
+	}
+	
+	public void addSubgramatica(Gramatica subgramatica){
+		subgramaticas.add(subgramatica);
 	}
 
 }
