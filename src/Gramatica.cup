@@ -104,8 +104,8 @@ start with padrao;
 padrao ::= padraoComposto:p {:parser.padraoFinal = p; RESULT = p;:} | concatenacao:c {:parser.padraoFinal = c; RESULT = c;:} |
 		   escolhaOrdenada:eo {:parser.padraoFinal = eo; RESULT = eo;:} | gramatica:g {:parser.padraoFinal = g; RESULT = g;:};
 
-gramatica ::= ID:id ATRIBUICAO qualquerPadrao:p {:System.out.println("Gramatica 1"); RESULT = new Gramatica((String)id); ((Gramatica)RESULT).setPadrao(p);:} | 
-			  gramatica:g LINHA ID:id ATRIBUICAO qualquerPadrao:p {:System.out.println("Gramatica 2"); Gramatica sub = new Gramatica((String)id); sub.setPadrao(p); ((Gramatica)g).addSubgramatica(sub); RESULT = g;:};
+gramatica ::= ID:id ATRIBUICAO qualquerPadrao:p {:RESULT = new Gramatica((String)id); ((Gramatica)RESULT).setPadrao(p);:} | 
+			  gramatica:g LINHA ID:id ATRIBUICAO qualquerPadrao:p {:Gramatica sub = new Gramatica((String)id); sub.setPadrao(p); ((Gramatica)g).addSubgramatica(sub); RESULT = g;:};
 
 qualquerPadrao ::= escolhaOrdenada:eo {:RESULT = eo;:} |
 				   concatenacao:c {:RESULT = c;:} |
@@ -126,14 +126,21 @@ concatenacao ::= padraoComposto:p1 padraoComposto:p2 {:Concatenacao c = new Conc
 padraoComposto ::= padraoSimples:p {:RESULT = p;:} |
 		   		   padraoComposto:p ASTERISCO {:
 		   		   
-		   		   if(p.getTipo() == TipoPadrao.CONCATENACAO){
+		   		   boolean isScan = p.getTipo() == TipoPadrao.CONCATENACAO &&
+		   		   					p.concatenacao().get(0).getTipo() == TipoPadrao.PONTO &&
+		   		   					p.concatenacao().get(1).getTipo() == TipoPadrao.NAO &&
+		   		   					((Nao)p.concatenacao().get(1)).getPadrao().getTipo() == TipoPadrao.CONJUNTO;
+		   		   
+		   		   if(isScan){
+		   		   		RESULT = new Ate(((Nao)p.concatenacao().get(1)).getPadrao());
+		   		   }else{
+		   		   		RESULT = new Repeticao(p, TipoRepeticao.ZERO_OU_MAIS);
 		   		   }
 		   		   
-		   		   RESULT = new Repeticao(p, TipoRepeticao.ZERO_OU_MAIS);
 		   		   :} |
 				   padraoComposto:p MAIS {:RESULT = new Repeticao(p, TipoRepeticao.ZERO_OU_MAIS);:} |
 				   padraoComposto:p OPCIONAL {:RESULT = new Opcional(p);:} |
-				   ATE SEQUENCIA:s {:String sequencia = ((String)s).substring(1, ((String)s).length()-1); RESULT = new Ate(new Sequencia(sequencia));:} |
+				   ATE SEQUENCIA:s {:String sequencia = ((String)s).substring(1, ((String)s).length()-1); RESULT = new Ate(new Conjunto(sequencia));:} |
 				   NOT padraoComposto:p {:
 				   				if(p.getTipo() == TipoPadrao.E){
 				   					RESULT = new Nao(p.e().getPadrao());
@@ -148,7 +155,7 @@ padraoComposto ::= padraoSimples:p {:RESULT = p;:} |
 	   
 padraoSimples ::= 	ID:id {:RESULT = new Chamada((String)id);:} |
 					QUALQUER {:RESULT = new Ponto(1);:} |
-					SEQUENCIA:s {:String sequencia = ((String)s).substring(1, ((String)s).length()-1); RESULT = new Sequencia(sequencia);:} | 
+					SEQUENCIA:s {:String sequencia = ((String)s).substring(1, ((String)s).length()-1); if(sequencia.length()==1){RESULT = new Conjunto(sequencia);}else{ RESULT = new Sequencia(sequencia);}:} | 
 		   			CONJUNTO:c {:String conjunto = ((String)c).substring(1, ((String)c).length()-1); RESULT = new Conjunto(conjunto);:};
 
         

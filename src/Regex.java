@@ -362,7 +362,7 @@ public class Regex {
 			
 			
 		}else if(padrao.getTipo() == TipoPadrao.ATE){
-			retorno.add(new ISpan(padrao.ate().getPadrao().sequencia().getTexto().charAt(0)));
+			retorno.add(new ISpan(padrao.ate().getPadrao().conjunto().getConjuntoCaracteres()));
 		}else if(padrao.getTipo() == TipoPadrao.SEQUENCIA){
 			
 			String texto = padrao.sequencia().getTexto();
@@ -445,7 +445,7 @@ public class Regex {
 				break;
 				
 			case SPAN:
-				System.out.println("\tSpan "+instrucao.ISpan().getCaracter());
+				System.out.println("\tSpan "+instrucao.ISpan().getSet());
 				break;
 				
 			case CAPTURE:
@@ -509,10 +509,8 @@ public class Regex {
 			}else if(instrucaoAtual.getTipoInstrucao() == TipoInstrucao.CHARSET){
 				
 				if(posicaoNoTexto >= texto.length()){
-					break;
-				}
-				
-				if(instrucaoAtual.ICharset().isCharecterIn(texto.charAt(posicaoNoTexto))){
+					falhou = true;
+				}else if(instrucaoAtual.ICharset().isCharecterIn(texto.charAt(posicaoNoTexto))){
 					//System.out.println("Caractere no conjunto "+texto.charAt(posicaoNoTexto));
 					tamanhoTextoCasado++;
 					posicaoNoTexto++;
@@ -526,10 +524,15 @@ public class Regex {
 				}
 				
 			}else if(instrucaoAtual.getTipoInstrucao() == TipoInstrucao.ANY){
-				tamanhoTextoCasado++;
-				posicaoNoTexto++;
 				
-				System.out.println("Casou qualquer "+posicaoNoTexto);
+				if(posicaoNoTexto >= texto.length()){
+					falhou = true;
+				}else{
+					tamanhoTextoCasado++;
+					posicaoNoTexto++;
+				}
+				
+				//System.out.println("Casou qualquer "+posicaoNoTexto);
 				
 				if(delegate != null){
 					delegate.rodouInstrucao(instrucaoAtual);
@@ -611,8 +614,12 @@ public class Regex {
 				for(; posicaoNoTexto < texto.length(); posicaoNoTexto++, tamanhoTextoCasado++){
 					char c = texto.charAt(posicaoNoTexto);
 					//System.out.println("Analizou "+c);
-					if(c == instrucaoAtual.ISpan().getCaracter()) break;
+					if(instrucaoAtual.ISpan().contem(c)) break;
 				}
+				
+				/*if(posicaoNoTexto >= texto.length()){
+					break;
+				}*/
 				
 				i++;
 				instrucaoAtual = instrucoes.get(i);
@@ -689,7 +696,8 @@ public class Regex {
 						instrucaoAtual = instrucoesLabel.get(labelDesvio);
 						i = instrucoes.indexOf(instrucaoAtual);
 						
-						//System.out.println("Tamanho "+estadoMaquina.getTamanhoTextoCasado());
+						
+						//System.out.println(instrucaoAtual.toString()+" Tamanho "+estadoMaquina.getTamanhoTextoCasado());
 						continue;
 					}
 				}else{
@@ -727,7 +735,7 @@ public class Regex {
 		//System.out.println("Texto Casado: "+ (estadoMaquina.getTamanhoTextoCasado()+1));
 		
 		if(estadoMaquina.getTamanhoTextoCasado() == -1 || desvioChamada.size() > 0){
-			System.out.println(desvioChamada.size()+" Retornou aqui "+estadoMaquina.getTamanhoTextoCasado());
+			//System.out.println(desvioChamada.size()+" Retornou aqui "+estadoMaquina.getTamanhoTextoCasado());
 			return null;
 		}
 		
@@ -773,8 +781,7 @@ public class Regex {
 			instrucoesLabel.put(label, instrucao);
 		}
 		
-		imprimirInstrucoes(instrucoes, labelsIntrucao);
-		//return 0;
+		//imprimirInstrucoes(instrucoes, labelsIntrucao);
 		return rodarInstrucoes(instrucoes, texto, instrucoesLabel);
 	}
 	

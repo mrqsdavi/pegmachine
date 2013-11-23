@@ -18,6 +18,10 @@ public class Concatenacao extends Padrao{
 	public ArrayList<Padrao> getPadroes() {
 		return padroes;
 	}
+	
+	public Padrao get(int i){
+		return padroes.get(i);
+	}
 
 	public void setPadroes(ArrayList<Padrao> padroes) {
 		this.padroes = padroes;

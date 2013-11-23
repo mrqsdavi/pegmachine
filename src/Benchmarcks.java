@@ -28,19 +28,45 @@ public class Benchmarcks {
 			e.printStackTrace();
 		}
 		
-	    benchmark("'@the'");
-	    benchmark("'Omega'");
-	    benchmark("'Alpha'");
-	    benchmark("'amethysts'");
-	    benchmark("'heith'");
-	    benchmark("'eartt'");
-	    //benchmark("[A-Za-z ]*");
+		System.out.println("Busca com otimização");
+	    benchmark("@the", 0);
+	    benchmark("Omega", 0);
+	    benchmark("Alpha", 0);
+	    benchmark("amethysts", 0);
+	    benchmark("heith", 0);
+	    benchmark("eartt", 0);
+
+	    System.out.println("\nBusca sem otimização");
+	    benchmark("'@the'", 1);
+	    benchmark("'Omega'", 1);
+	    benchmark("'Alpha'", 1);
+	    benchmark("'amethysts'", 1);
+	    benchmark("'heith'", 1);
+	    benchmark("'eartt'", 1);
+	    benchmark("[A-Za-z ]*", 1);
+	    benchmark("([a-zA-Z]+'Abram')",1);
+	    benchmark("([a-zA-Z]+'Joseph')",1);
+	    
+	    System.out.println("\nEffectiveness of optimizations");
+	    benchmark("S <- 'transparent' / . S", 2);
+	    benchmark("(!'transparent' .)* 'transparent'", 2);
+	    benchmark("S <- [a-zA-Z]+ ' '* 'transparent' / . S", 2);
+	    benchmark("(!([a-zA-Z]+ ' '* 'transparent') .)*", 2);
 		
 	}
 	
-	public static void benchmark(String p){
+	public static void benchmark(String p, int tipo){
 		long startTime= System.currentTimeMillis();
-	    int posicao = searchP(p, bibleText);
+	    int posicao = -1; 
+	    
+	    if(tipo == 0){
+	    	posicao = searchW(p, bibleText);
+	    }else if(tipo == 1){
+	    	posicao = searchP(p, bibleText);
+	    }else{
+	    	posicao = searchG(p, bibleText);
+	    }
+	    
 	    long endTime = System.currentTimeMillis();
 	    
 	    System.out.println(p+": " + posicao+" - "+(endTime-startTime)+"ms");
@@ -58,7 +84,19 @@ public class Benchmarcks {
         	return 0;
         }
                 
-		return position - padraoTexto.length();
+		return position;
+	}
+	
+	public static Integer searchG(String gramatica, String texto){
+		Regex r = new Regex();
+                
+        Integer position = r.match(gramatica, texto);
+                
+        if(position == null){
+        	return 0;
+        }
+                
+		return position;
 	}
 
 	public static Integer searchW(String padraoTexto, String texto){
@@ -73,7 +111,7 @@ public class Benchmarcks {
         	return 0;
         }
                 
-		return position - padraoTexto.length();
+		return position;
 	}
 	
 	public static String readFile(String pathname) throws IOException {
