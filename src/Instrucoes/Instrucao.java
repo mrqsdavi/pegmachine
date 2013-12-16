@@ -21,6 +21,10 @@ public abstract class Instrucao {
 		return null;
 	}
 	
+	public IPartialCommit IPartialCommit(){
+		return null;
+	}
+	
 	public IAny IAny(){
 		return null;
 	}
@@ -49,6 +53,10 @@ public abstract class Instrucao {
 		return null;
 	}
 	
+	public IFailTwice IFailTwice(){
+		return null;
+	}
+	
 	public ICapture ICapture(){
 		return null;
 	}
@@ -57,4 +65,14 @@ public abstract class Instrucao {
 		return null;
 	}
 	
+	public ITestChar ITestChar(){
+		return null;
+	}
+	
+	public ITestCharset ITestCharset(){
+		return null;
+	}
+	public ITestAny ITestAny(){
+		return null;
+	}
 }

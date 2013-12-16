@@ -6,6 +6,7 @@ public enum TipoInstrucao {
 	CHOICE,
 	COMMIT,
 	BACKCOMMIT,
+	PARTIALCOMMIT,
 	ANY,
 	CHARSET,
 	RETURN,
@@ -13,7 +14,11 @@ public enum TipoInstrucao {
 	JUMP,
 	END,
 	FAIL,
+	FAILTWICE,
 	CAPTURE,
-	SPAN
+	SPAN,
+	TESTCHAR,
+	TESTCHARSET,
+	TESTANY
 	
 }

@@ -23,7 +23,7 @@ public class Conjunto extends Padrao{
 		for(int i = 0; i < texto.length(); i++){
 			char caractereAtual = texto.charAt(i);
 			
-			if(caractereAtual == '-'){
+			if(caractereAtual == '-' && i!=0){
 				char primeiroCaractere = texto.charAt(i-1);
 				char ultimoCaractere = texto.charAt(i+1);
 				

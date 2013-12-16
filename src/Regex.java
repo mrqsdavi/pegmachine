@@ -24,6 +24,9 @@ public class Regex {
 	
 	private String labelUltimaGramatica = "";
 	
+	public boolean useHeadFailOptimization = false;
+	public boolean usePartialCommitOptimization = false;
+	
 	public ArrayList<String> getCaptures() {
 		return captures;
 	}
@@ -157,15 +160,29 @@ public class Regex {
 			if(commitPreviousLabel == null){
 				commitPreviousLabel = "L"+(labelsIntrucao.size() + 1);
 			}
-						
-			labelsIntrucao.put(iChoice, commitPreviousLabel);
 			
 			ArrayList<Instrucao> instrucoesRepeticao = instrucoesDoPadrao(padrao.repeticao().getPadrao());
-			ICommit iCommit = new ICommit(commitPreviousLabel);
 			
 			retorno.add(iChoice);
 			retorno.addAll(instrucoesRepeticao);
-			retorno.add(iCommit);
+			
+			labelsIntrucao.put(iChoice, commitPreviousLabel);
+			
+			if(usePartialCommitOptimization){
+				
+				String labelPartialCommit = "L"+(labelsIntrucao.size() + 1);
+				
+				Instrucao primeiraInstrucao = instrucoesRepeticao.get(0);
+				labelsIntrucao.put(primeiraInstrucao, labelPartialCommit);
+				
+				IPartialCommit partialCommit = new IPartialCommit(labelPartialCommit);
+				retorno.add(partialCommit);
+				
+			}else{
+				
+				ICommit iCommit = new ICommit(commitPreviousLabel);
+				retorno.add(iCommit);
+			}
 			
 		}else if(padrao.getTipo() == TipoPadrao.CONCATENACAO){
 
@@ -253,13 +270,31 @@ public class Regex {
 
 			for(int i = 0; i < padrao.escolhaOrdenada().getPadroes().size() - 1; i++){
 				if(previousLabels.size() > 0){
+					
+					Padrao padraoAtualEO = padrao.escolhaOrdenada().getPadroes().get(i);
+					
+					boolean usarHeadFail = useHeadFailOptimization && padraoAtualEO.getTipo() == TipoPadrao.SEQUENCIA;
+					
 					String labelInstrucao = previousLabels.get(previousLabels.size() - 1);
 					previousLabels.remove(previousLabels.size() - 1);
 					
 					String labelChoice = "L"+(labelsIntrucao.size() + 1);
 					IChoice choice = new IChoice(labelChoice);
 					ICommit commit = new ICommit(nextLabels.get(nextLabels.size() - 1));
-					labelsIntrucao.put(choice, labelInstrucao);
+					
+					if(usarHeadFail){
+						ITestChar testChar = new ITestChar(padraoAtualEO.sequencia().getTexto().charAt(0), labelChoice);
+						labelsIntrucao.put(choice, labelInstrucao);
+						retorno.add(testChar);
+						
+						String textoSequencia = padraoAtualEO.sequencia().getTexto();
+						
+						padraoAtualEO = new Sequencia(textoSequencia.substring(1, textoSequencia.length()));
+					}else{
+						System.out.println(padraoAtualEO+" Não usou headFail "+useHeadFailOptimization);
+						labelsIntrucao.put(choice, labelInstrucao);
+					}
+					
 					retorno.add(choice);
 					
 					String labelCommit = "L"+(labelsIntrucao.size()+1);
@@ -270,7 +305,6 @@ public class Regex {
 					labelsIntrucao.put(null, labelPrimeiraInstrucao);
 					previousLabels.add(labelPrimeiraInstrucao);
 					
-					Padrao padraoAtualEO = padrao.escolhaOrdenada().getPadroes().get(i);
 					ArrayList<Instrucao> instrucoesPardraoAtual = instrucoesDoPadrao(padraoAtualEO);
 					
 					if(padraoAtualEO.getTipo() == TipoPadrao.REPETICAO && padraoAtualEO.repeticao().getTipoRepeticao() == TipoRepeticao.ZERO_OU_MAIS){
@@ -420,6 +454,10 @@ public class Regex {
 				System.out.println("\tBackCommit "+instrucao.IBackCommit().getLabel());
 				break;
 				
+			case PARTIALCOMMIT:
+				System.out.println("\tPartialCommit "+instrucao.IPartialCommit().getLabel());
+				break;
+				
 			case CHARSET:
 				System.out.println("\tCharset ["+instrucao.ICharset().getTexto()+"]");
 				break;
@@ -434,6 +472,10 @@ public class Regex {
 				
 			case FAIL:
 				System.out.println("\tFail");
+				break;
+				
+			case FAILTWICE:
+				System.out.println("\tFailTwice");
 				break;
 			
 			case RETURN:
@@ -454,6 +496,18 @@ public class Regex {
 				}else{
 					System.out.println("\tCapture end");
 				}
+				break;
+				
+			case TESTCHAR:
+				System.out.println("\tTestChar "+instrucao.ITestChar().getCaracter()+" "+instrucao.ITestChar().getLabel());
+				break;
+				
+			case TESTCHARSET:
+				System.out.println("\tTestCharset "+instrucao.ITestCharset().getSet()+" "+instrucao.ITestChar().getLabel());
+				break;
+			
+			case TESTANY:
+				System.out.println("\tTestAny "+instrucao.ITestAny().getLabel());
 				break;
 
 			default:
@@ -495,9 +549,9 @@ public class Regex {
 					if(texto.charAt(posicaoNoTexto) == instrucaoAtual.IChar().getCaracter()){
 						tamanhoTextoCasado++;
 						posicaoNoTexto++;
-						//System.out.println(posicaoNoTexto+" Casou "+instrucaoAtual.IChar().getCaracter());
+						System.out.println(posicaoNoTexto+" Casou "+instrucaoAtual.IChar().getCaracter());
 					}else{
-						//System.out.println("Falhou ao comparar: "+texto.charAt(posicaoNoTexto)+"\tcom:"+instrucaoAtual.IChar().getCaracter());
+						System.out.println("Falhou ao comparar: "+texto.charAt(posicaoNoTexto)+"\tcom:"+instrucaoAtual.IChar().getCaracter());
 						falhou = true;
 					}
 				}
@@ -511,11 +565,11 @@ public class Regex {
 				if(posicaoNoTexto >= texto.length()){
 					falhou = true;
 				}else if(instrucaoAtual.ICharset().isCharecterIn(texto.charAt(posicaoNoTexto))){
-					//System.out.println("Caractere no conjunto "+texto.charAt(posicaoNoTexto));
+					System.out.println("Caractere no conjunto "+texto.charAt(posicaoNoTexto));
 					tamanhoTextoCasado++;
 					posicaoNoTexto++;
 				}else{
-					//System.out.println("Falhou ao comparar no conjunto: "+texto.charAt(posicaoNoTexto)+" "+instrucaoAtual.ICharset().getSet());
+					System.out.println("Falhou ao comparar "+texto.charAt(posicaoNoTexto)+" no conjunto: "+texto.charAt(posicaoNoTexto)+" "+instrucaoAtual.ICharset().getSet());
 					falhou = true;
 				}
 				
@@ -593,6 +647,20 @@ public class Regex {
 				}
 				
 				instrucaoAtual =  instrucoesLabel.get(instrucaoAtual.IBackCommit().getLabel());
+				
+				i = instrucoes.indexOf(instrucaoAtual);
+				continue;
+				
+			}else if(instrucaoAtual.getTipoInstrucao() == TipoInstrucao.PARTIALCOMMIT){
+
+				pilhaRetorno.get(pilhaRetorno.size() - 1).setTamanhoTextoCasado(tamanhoTextoCasado);
+				pilhaRetorno.get(pilhaRetorno.size() - 1).setPosicaoTexto(posicaoNoTexto);
+				
+				if(delegate != null){
+					delegate.rodouInstrucao(instrucaoAtual);
+				}
+				
+				instrucaoAtual =  instrucoesLabel.get(instrucaoAtual.IPartialCommit().getLabel());
 				
 				i = instrucoes.indexOf(instrucaoAtual);
 				continue;
@@ -755,7 +823,7 @@ public class Regex {
 			e.printStackTrace();
 		}
 		
-		//System.out.println("Padrao Final: "+parser.padraoFinal.toString());
+		System.out.println("Padrao Final: "+parser.padraoFinal.toString());
 		
 		return match(parser.padraoFinal, texto);
 	}
@@ -781,16 +849,24 @@ public class Regex {
 			instrucoesLabel.put(label, instrucao);
 		}
 		
-		//imprimirInstrucoes(instrucoes, labelsIntrucao);
+		imprimirInstrucoes(instrucoes, labelsIntrucao);
 		return rodarInstrucoes(instrucoes, texto, instrucoesLabel);
 	}
 	
 	public static void main(String[] args) {
 		
-		Regex regex = new Regex();		
-		System.out.println("Texto Casado " + regex.match("S <- 'davi'D'bola'*\n"
-				+ "D <- 'teste'*?", "davitestebola"));
+		Regex regex = new Regex();
+		regex.useHeadFailOptimization = true;
+		//System.out.println("Texto Casado " + regex.match("S <- 'davi'D'bola'*\nD <- 'teste'*?", "davitestebola"));
 		
+		//HeadFail example
+		//System.out.println("Texto Casado " + regex.match("S <- 'ana' / .S", "tetstetgbshsghsghsghanajkjdkjskskjs"));
+		
+		//PartialCommit example
+		//regex.usePartialCommitOptimization = true;
+		System.out.println("Texto Casado " + regex.match("Soma <- Produto (('+' / '-') Produto)*\n"
+				+ "Produto <- Valor (('*' / '/') Valor)*\n"
+				+ "Valor <- [0-9]+ / '(' Expr ')'", "1+2*2"));
 	}
 	
 }
