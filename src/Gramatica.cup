@@ -94,6 +94,7 @@ non terminal			Padrao gramatica;
 precedence left APAR;
 precedence left ACHA;
 precedence left MAIS;
+precedence left ID;
 precedence left OPCIONAL;
 precedence left ASTERISCO;
 precedence left CONJUNTO;
@@ -138,7 +139,7 @@ padraoComposto ::= padraoSimples:p {:RESULT = p;:} |
 		   		   }
 		   		   
 		   		   :} |
-				   padraoComposto:p MAIS {:RESULT = new Repeticao(p, TipoRepeticao.ZERO_OU_MAIS);:} |
+				   padraoComposto:p MAIS {:RESULT = new Repeticao(p, TipoRepeticao.UMA_OU_MAIS);:} |
 				   padraoComposto:p OPCIONAL {:RESULT = new Opcional(p);:} |
 				   ATE SEQUENCIA:s {:String sequencia = ((String)s).substring(1, ((String)s).length()-1); RESULT = new Ate(new Conjunto(sequencia));:} |
 				   NOT padraoComposto:p {:

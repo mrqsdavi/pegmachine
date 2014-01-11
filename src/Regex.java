@@ -9,65 +9,33 @@ import Instrucoes.*;
 
 public class Regex {
 	
-	private RegexDelegate delegate;
-	
-	private ArrayList<String> captures = new ArrayList<String>();
+	private Instrucao end;
 	
 	private HashMap<Instrucao, String> labelsIntrucao;
 	private HashMap<String, Instrucao> instrucoesLabel;
 	
-	private ArrayList<String> nextLabels = new ArrayList<String>();
-	private ArrayList<String> previousLabels = new ArrayList<String>();
-	private ArrayList<String> gramaticasCriadasLabels = new ArrayList<String>();
-	/*private ArrayList<String> labelsPosteriores = new ArrayList<String>();
-	private ArrayList<String> labelsIdentificacao = new ArrayList<String>();*/
-	
 	private String labelUltimaGramatica = "";
+	
+	private Instrucao next = null;
+	private Instrucao previous = null;
+	private HashMap<String, Instrucao> instrucaoGramatica;
 	
 	public boolean useHeadFailOptimization = false;
 	public boolean usePartialCommitOptimization = false;
-	
-	public ArrayList<String> getCaptures() {
-		return captures;
-	}
-
-	public void setCaptures(ArrayList<String> captures) {
-		this.captures = captures;
-	}
-	
-	public String lastCapture(){
-		if(captures.size() == 0){
-			return null;
-		}
-		
-		return captures.get(captures.size() - 1);
-	}
-
-	public RegexDelegate getDelegate() {
-		return delegate;
-	}
-
-	public void setDelegate(RegexDelegate delegate) {
-		this.delegate = delegate;
-	}
 
 	public ArrayList<Instrucao> instrucoes(Padrao padrao){
-		
-		String primeiroLabel = null;
-		IFail failTemp = new IFail();
-		if(padrao.getTipo() != TipoPadrao.GRAMATICA){
-			primeiroLabel = "L"+(labelsIntrucao.size()+1);
-			previousLabels.add(primeiroLabel);
-			labelsIntrucao.put(failTemp, primeiroLabel);
-		}
-		
+
+		instrucaoGramatica = new HashMap<>();
+		end = new IEnd();
+		next = end;
 		ArrayList<Instrucao> retorno = instrucoesDoPadrao(padrao);
-		
-		if(primeiroLabel != null && retorno.size() > 0){
-			Instrucao primeiraInstrucao = retorno.get(0);
-			
-			labelsIntrucao.remove(failTemp);
-			labelsIntrucao.put(primeiraInstrucao, primeiroLabel);
+		retorno.add(end);
+
+		for(int i = 0; i < retorno.size(); i++){
+			Instrucao instrucaoAtual = retorno.get(i);
+			if(instrucaoAtual.getInstrucaoDesvio()!=null){
+				instrucaoAtual.setIndexDesvio(retorno.indexOf(instrucaoAtual.getInstrucaoDesvio()));
+			}
 		}
 		
 		return retorno;
@@ -78,195 +46,263 @@ public class Regex {
 		
 		ArrayList<Instrucao> retorno = new ArrayList<Instrucao>();
 		
-		if(padrao.getTipo() == TipoPadrao.GRAMATICA && !gramaticasCriadasLabels.contains(padrao.gramatica().getNome())){
+		Instrucao backupNext = next;
+		Instrucao backupPrevious = previous;
+		
+		switch (padrao.getTipo()) {
+		case GRAMATICA:{
 			
-			labelUltimaGramatica = padrao.gramatica().getNome();
+				ICall callGramatica = new ICall(padrao.gramatica().getNome());
+				IJump jumpGramatica = new IJump("");
+				IReturn returnGramatica = new IReturn();
+				
+				Instrucao previousTemporaria = new ICall("PT");
+				
+				jumpGramatica.setInstrucaoDesvio(end);
+				next = returnGramatica;
+				previous = previousTemporaria;
+				
+				instrucaoGramatica.put(padrao.gramatica().getNome(), previous);
+				
+				ArrayList<Instrucao> instrucoes = instrucoesDoPadrao(padrao.gramatica().getPadrao());
+				
+				previous = instrucoes.get(0);
+				callGramatica.setInstrucaoDesvio(previous);
+				
+				for(int i = 0; i < instrucoes.size(); i++){
+					if(instrucoes.get(i).getInstrucaoDesvio() == previousTemporaria){
+						instrucoes.get(i).setInstrucaoDesvio(previous);
+					}
+				}
+				
+				retorno.add(callGramatica);
+				retorno.add(jumpGramatica);
+				retorno.addAll(instrucoes);
+				retorno.add(returnGramatica);
+				
+				for(int i = 0; i < padrao.gramatica().getSubgramaticas().size(); i++){
+					Gramatica subgramatica = padrao.gramatica().getSubgramaticas().get(i);
+					ArrayList<Instrucao> instrucoesSubgramatica = instrucoesDoPadrao(subgramatica);
+					instrucoesSubgramatica.remove(0);
+					instrucoesSubgramatica.remove(0);
+					retorno.addAll(instrucoesSubgramatica);
+				}
 			
-			gramaticasCriadasLabels.add(padrao.gramatica().getNome());
-			retorno.add(new ICall(padrao.gramatica().getNome()));
+		}
+		break;
 			
-			String returnLabel = "R"+padrao.gramatica().getNome();
-			IReturn iReturn = new IReturn();
-			labelsIntrucao.put(iReturn, returnLabel);
-			
-			String jumpNextLabel = nextLabels.get(nextLabels.size() - 1);
-			IJump iJump = new IJump(jumpNextLabel);
-			retorno.add(iJump);
-			
-			nextLabels.add(returnLabel);
-			previousLabels.add(padrao.gramatica().getNome());
-			ArrayList<Instrucao> instrucoesDaGramatica = instrucoesDoPadrao(padrao.gramatica().getPadrao());
-			if(instrucoesDaGramatica.size() > 0){
-				Instrucao primeiraInstrucao = instrucoesDaGramatica.get(0);				
-				if(!labelsIntrucao.containsValue(primeiraInstrucao)){
-					labelsIntrucao.put(primeiraInstrucao, padrao.gramatica().getNome());
-				}				
-				retorno.addAll(instrucoesDaGramatica);
-			}
-			previousLabels.remove(padrao.gramatica().getNome());
-			
-			nextLabels.remove(returnLabel);
-			retorno.add(iReturn);
-			
-			for(int i = 0; i < padrao.gramatica().getSubgramaticas().size(); i++){
-				Gramatica subgramatica = padrao.gramatica().getSubgramaticas().get(i);
-				retorno.addAll(instrucoesDoPadrao(subgramatica));
-			}
-			
-		}else if(padrao.getTipo() == TipoPadrao.CAPTURA){
-			
+		case CAPTURA:{
 			ICapture beginCapture = new ICapture(TipoCapture.BEGIN);
 			ICapture endCapture = new ICapture(TipoCapture.END);
 			
-			String labelPrimeiraInstrucao = "L"+(labelsIntrucao.size() + 1);
-			String labelEndCapture = "L"+(labelsIntrucao.size() + 2);
-			labelsIntrucao.put(beginCapture, labelPrimeiraInstrucao);
-			labelsIntrucao.put(endCapture, labelEndCapture);
-			previousLabels.add(labelPrimeiraInstrucao);
-			nextLabels.add(labelEndCapture);
+			previous = beginCapture;
+			next = endCapture;
 			
 			ArrayList<Instrucao> instrucoes = instrucoesDoPadrao(padrao.captura().getPadrao());
-			
-			labelsIntrucao.remove(beginCapture);
-			
-			if(instrucoes.size() > 0){
-				Instrucao primeiraInstrucao = instrucoes.get(0);
-				labelsIntrucao.put(primeiraInstrucao, labelPrimeiraInstrucao);
-			}
-					
 			
 			retorno.add(beginCapture);
 			retorno.addAll(instrucoes);
 			retorno.add(endCapture);
-			
-			previousLabels.remove(labelPrimeiraInstrucao);
-			nextLabels.remove(labelEndCapture);
-			
-		}else if(padrao.getTipo() == TipoPadrao.REPETICAO){
-			
-			String commitPreviousLabel = null;
-			if(padrao.repeticao().getTipoRepeticao() == TipoRepeticao.UMA_OU_MAIS){
-				retorno.addAll(instrucoesDoPadrao(padrao.repeticao().getPadrao()));
-				commitPreviousLabel = "L"+(labelsIntrucao.size() + 1);
-			}
-			
-			String choiceNextLabel = nextLabels.get(nextLabels.size() - 1);
-			IChoice iChoice = new IChoice(choiceNextLabel);
+		}
+		break;
 		
-			if(previousLabels.size() > 0 && commitPreviousLabel == null){
-				commitPreviousLabel = previousLabels.get(previousLabels.size() - 1);
+		case REPETICAO:{
+			
+			if(padrao.repeticao().getTipoRepeticao() == TipoRepeticao.UMA_OU_MAIS){
+				Instrucao previousTemporaria = new ICall("");
+				previous = previousTemporaria;
+				
+				ArrayList<Instrucao> instrucoes = instrucoesDoPadrao(padrao.repeticao().getPadrao());
+				previous = instrucoes.get(0);
+				for(int i = 0; i < instrucoes.size(); i++){
+					if(instrucoes.get(i).getInstrucaoDesvio() == previousTemporaria){
+						instrucoes.get(i).setInstrucaoDesvio(previous);
+					}
+				}
+				
+				retorno.addAll(instrucoes);
 			}
 			
-			if(commitPreviousLabel == null){
-				commitPreviousLabel = "L"+(labelsIntrucao.size() + 1);
-			}
+			IChoice choiceRepeticao = new IChoice("");
+			ICommit commitRepeticao = new ICommit("");
+			
+			choiceRepeticao.setInstrucaoDesvio(next);
+			commitRepeticao.setInstrucaoDesvio(choiceRepeticao);
+			
+			previous = choiceRepeticao;
 			
 			ArrayList<Instrucao> instrucoesRepeticao = instrucoesDoPadrao(padrao.repeticao().getPadrao());
 			
-			retorno.add(iChoice);
+			retorno.add(choiceRepeticao);
 			retorno.addAll(instrucoesRepeticao);
 			
-			labelsIntrucao.put(iChoice, commitPreviousLabel);
-			
 			if(usePartialCommitOptimization){
+				for(int i = 0; i < instrucoesRepeticao.size(); i++){
+					if(instrucoesRepeticao.get(i).getInstrucaoDesvio() == previous){
+						instrucoesRepeticao.get(i).setInstrucaoDesvio(instrucoesRepeticao.get(0));
+					}
+				}
 				
-				String labelPartialCommit = "L"+(labelsIntrucao.size() + 1);
-				
-				Instrucao primeiraInstrucao = instrucoesRepeticao.get(0);
-				labelsIntrucao.put(primeiraInstrucao, labelPartialCommit);
-				
-				IPartialCommit partialCommit = new IPartialCommit(labelPartialCommit);
+				IPartialCommit partialCommit = new IPartialCommit("");
+				partialCommit.setInstrucaoDesvio(next);
 				retorno.add(partialCommit);
 				
 			}else{
-				
-				ICommit iCommit = new ICommit(commitPreviousLabel);
-				retorno.add(iCommit);
+				retorno.add(commitRepeticao);
 			}
+		}
+		break;
+		
+		case CONCATENACAO:{
 			
-		}else if(padrao.getTipo() == TipoPadrao.CONCATENACAO){
-
-			ArrayList<String> registroLabels = new ArrayList<>();
 			ArrayList<Instrucao> instrucoesTemporarias = new ArrayList<>();
+			ArrayList<Instrucao> instrucoesReais = new ArrayList<>();
 			
-			registroLabels.add(previousLabels.get(previousLabels.size() - 1));
-			IChar tempInicial = new IChar('*');
-			instrucoesTemporarias.add(tempInicial);
-			
-			int indexInstrucao = nextLabels.size();
-			nextLabels.add(indexInstrucao, previousLabels.get(previousLabels.size() - 1));
-			
-			
-			for(int i = 1; i < padrao.concatenacao().getPadroes().size(); i++){
-				
-				String label = "L"+(labelsIntrucao.size() + 1);
-				
-				
-				IChar temp = new IChar('*');
-				instrucoesTemporarias.add(temp);
-				registroLabels.add(label);
-				labelsIntrucao.put(temp, label);
-				nextLabels.add(indexInstrucao, label);
+			for(int i = 0; i<padrao.concatenacao().getPadroes().size();i++){
+				instrucoesTemporarias.add(new ICall("L"+i));
 			}
 			
-			for(int i = 0; i < padrao.concatenacao().getPadroes().size(); i++){
+			for(int i = 0; i<padrao.concatenacao().getPadroes().size();i++){
+				
 				Padrao padraoAtual = padrao.concatenacao().getPadroes().get(i);
+				Instrucao instrucaoPrevious = null;
+				Instrucao instrucaoNext = null;
 				
-				String labelPrimeiraInstrucao = registroLabels.get(i);
+				if(i==0){
+					instrucaoPrevious = backupPrevious;
+				}else{
+					instrucaoPrevious = instrucoesTemporarias.get(i-1);
+				}
 				
-				nextLabels.remove(labelPrimeiraInstrucao);
-				previousLabels.add(labelPrimeiraInstrucao);
+				if(i==padrao.concatenacao().getPadroes().size()-1){
+					instrucaoNext = backupNext;
+				}else{
+					instrucaoNext = instrucoesTemporarias.get(i+1);
+				}
 				
+				previous = instrucaoPrevious;
+				next = instrucaoNext;
+
 				ArrayList<Instrucao> instrucoesPadraoAtual = instrucoesDoPadrao(padraoAtual);
-				if(labelPrimeiraInstrucao != null && instrucoesPadraoAtual.size() > 0){
-					Instrucao primeiraInstucao = instrucoesPadraoAtual.get(0);
-					labelsIntrucao.remove(instrucoesTemporarias.get(i));
-					labelsIntrucao.put(primeiraInstucao, labelPrimeiraInstrucao);
-				}
-				retorno.addAll(instrucoesPadraoAtual);
-				previousLabels.remove(labelPrimeiraInstrucao);
-			}
-			
-			/*String labelPrimeiraInstrucao = null;
-			String labelPosterior = null;
-			
-			for(int i = 0; i < padrao.concatenacao().getPadroes().size(); i++){
-				Padrao padraoAtual = padrao.concatenacao().getPadroes().get(i);
-				labelPrimeiraInstrucao = labelPosterior;
-				
-				if(padraoAtual.getTipo() == TipoPadrao.REPETICAO && padraoAtual.repeticao().getTipoRepeticao() == TipoRepeticao.UMA_OU_MAIS){
-					labelPosterior = "L"+(labelsIntrucao.size() + 2);
-				}else if(padraoAtual.getTipo() == TipoPadrao.REPETICAO || padraoAtual.getTipo() == TipoPadrao.ESCOLHA_ORDENADA){
-					labelPosterior = "L"+(labelsIntrucao.size() + 1);
-				}
-				
-				if(labelPosterior != null && i < padrao.concatenacao().getPadroes().size() - 1){
-					nextLabels.add(labelPosterior);
-					
-					if(labelPrimeiraInstrucao != null){
-						previousLabels.add(labelPosterior);
-					}
-					
-				}
-				
-				ArrayList<Instrucao> instrucoesPadraoAtual = instrucoesDoPadrao(padraoAtual);
-				if(labelPrimeiraInstrucao != null && instrucoesPadraoAtual.size() > 0){
-					Instrucao primeiraInstucao = instrucoesPadraoAtual.get(0);
-					labelsIntrucao.put(primeiraInstucao, labelPrimeiraInstrucao);
-				}
+				instrucoesReais.add(instrucoesPadraoAtual.get(0));
 				retorno.addAll(instrucoesPadraoAtual);
 				
-				if(labelPosterior != null){
-					nextLabels.remove(labelPosterior);
-					previousLabels.add(labelPosterior);
+			}
+			
+			for(int i = 0; i < retorno.size(); i++){
+				Instrucao instrucaoAtual = retorno.get(i);
+				if(instrucaoAtual.getInstrucaoDesvio()!=null && instrucoesTemporarias.contains(instrucaoAtual.getInstrucaoDesvio())){
+					int index = instrucoesTemporarias.indexOf(instrucaoAtual.getInstrucaoDesvio());
+					retorno.get(i).setInstrucaoDesvio(instrucoesReais.get(index));
+				}
+			}
+		}
+			break;
+
+		case ESCOLHA_ORDENADA:{
+			ArrayList<Instrucao> instrucoesTemporarias = new ArrayList<>();
+			ArrayList<Instrucao> instrucoesReais = new ArrayList<>();
+			
+			for(int i = 0; i<padrao.escolhaOrdenada().getPadroes().size();i++){
+				instrucoesTemporarias.add(new ICall("L"+i));
+			}
+			
+			for(int i = 0; i<padrao.escolhaOrdenada().getPadroes().size();i++){
+				
+				Padrao padraoAtual = padrao.escolhaOrdenada().getPadroes().get(i);
+				Instrucao instrucaoNext = null;
+				
+				if(i==padrao.escolhaOrdenada().getPadroes().size()-1){
+					instrucaoNext = backupNext;
+				}else{
+					instrucaoNext = instrucoesTemporarias.get(i+1);
+				}
+				
+				next = instrucaoNext;
+				
+				ArrayList<Instrucao> instrucoesPadraoAtual = instrucoesDoPadrao(padraoAtual);
+				retorno.addAll(instrucoesPadraoAtual);
+				
+				//FAZER AQUI O HEAD FAIL
+				
+				if(i!=padrao.escolhaOrdenada().getPadroes().size()-1){
+					IChoice choiceEscolha = new IChoice("");
+					ICommit commitEscolha = new ICommit("");
+					
+					choiceEscolha.setInstrucaoDesvio(instrucaoNext);
+					commitEscolha.setInstrucaoDesvio(backupNext);
+					
+					instrucoesReais.add(choiceEscolha);
+					
+					retorno.add(0, choiceEscolha);
+					retorno.add(commitEscolha);
+				}else{
+					instrucoesReais.add(instrucoesPadraoAtual.get(0));
 				}
 				
 			}
 			
-			nextLabels.remove(labelPosterior);
-			nextLabels.remove(labelPrimeiraInstrucao);*/
+			for(int i = 0; i < retorno.size(); i++){
+				Instrucao instrucaoAtual = retorno.get(i);
+				if(instrucaoAtual.getInstrucaoDesvio()!=null && instrucoesTemporarias.contains(instrucaoAtual.getInstrucaoDesvio())){
+					int index = instrucoesTemporarias.indexOf(instrucaoAtual.getInstrucaoDesvio());
+					retorno.get(i).setInstrucaoDesvio(instrucoesReais.get(index));
+				}
+			}
+		}
+			break;
 			
-		}else if(padrao.getTipo() == TipoPadrao.ESCOLHA_ORDENADA){
+		case E:
+			break;
+		
+		case NAO:
+			break;
+			
+		case OPCIONAL:
+			break;
+			
+		case ATE:
+			retorno.add(new ISpan(padrao.ate().getPadrao().conjunto().getConjuntoCaracteres()));
+			break;
+		
+		case CADEIA_VAZIA:
+			retorno.add(new IChar(true));
+			break;
+			
+		case SELF:
+			retorno.add(new ICall(labelUltimaGramatica));
+			break;
+		
+		case CHAMADA:{
+			ICall call = new ICall("");
+			call.setInstrucaoDesvio(instrucaoGramatica.get(padrao.chamada().getLabel()));
+			retorno.add(call);
+		}
+			break;
+			
+		case SEQUENCIA:
+			String texto = padrao.sequencia().getTexto();
+			for(int i = 0; i < texto.length(); i++){					
+				retorno.add(new IChar(texto.charAt(i)));
+			}
+			break;
+			
+		case PONTO:
+			retorno.add(new IAny(padrao.ponto().getNumero()));
+			break;
+			
+		case CONJUNTO:
+			retorno.add(new ICharset(padrao.conjunto().getTexto(), padrao.conjunto().getConjuntoCaracteres()));
+			break;
+		
+		default:
+			break;
+		}
+		
+		next = backupNext;
+		previous = backupPrevious;
+		
+		/*if(padrao.getTipo() == TipoPadrao.ESCOLHA_ORDENADA){
 
 			for(int i = 0; i < padrao.escolhaOrdenada().getPadroes().size() - 1; i++){
 				if(previousLabels.size() > 0){
@@ -418,7 +454,7 @@ public class Regex {
 			//Ainda deve ser destrinchado para intervalos tipo [a-zA-z]
 			retorno.add(new ICharset(padrao.conjunto().getTexto(), padrao.conjunto().getConjuntoCaracteres()));
 			
-		}
+		}*/
 		
 		return retorno;		
 	}
@@ -427,10 +463,13 @@ public class Regex {
 		
 		for(int i = 0; i < instrucoes.size(); i++){
 			Instrucao instrucao = instrucoes.get(i);
+
+
+			System.out.print(i+":");
 			
-			if(labelsIntrucao.containsKey(instrucao)){
-				String labelInstrucao = labelsIntrucao.get(instrucao);
-				System.out.print(labelInstrucao+":");
+			String labelDesvio = null;			
+			if(instrucao.getInstrucaoDesvio()!=null){
+				labelDesvio = ""+instrucoes.indexOf(instrucao.getInstrucaoDesvio());
 			}
 			
 			switch (instrucao.getTipoInstrucao()) {
@@ -443,19 +482,19 @@ public class Regex {
 				break;
 				
 			case CHOICE:
-				System.out.println("\tChoice "+instrucao.IChoice().getLabel());
+				System.out.println("\tChoice "+labelDesvio);
 				break;
 				
 			case COMMIT:
-				System.out.println("\tCommit "+instrucao.ICommit().getLabel());
+				System.out.println("\tCommit "+labelDesvio);
 				break;
 				
 			case BACKCOMMIT:
-				System.out.println("\tBackCommit "+instrucao.IBackCommit().getLabel());
+				System.out.println("\tBackCommit "+labelDesvio);
 				break;
 				
 			case PARTIALCOMMIT:
-				System.out.println("\tPartialCommit "+instrucao.IPartialCommit().getLabel());
+				System.out.println("\tPartialCommit "+labelDesvio);
 				break;
 				
 			case CHARSET:
@@ -463,11 +502,11 @@ public class Regex {
 				break;
 				
 			case CALL:
-				System.out.println("\tCall "+instrucao.ICall().getLabel());
+				System.out.println("\tCall "+labelDesvio);
 				break;
 				
 			case JUMP:
-				System.out.println("\tJump "+instrucao.IJump().getLabel());
+				System.out.println("\tJump "+labelDesvio);
 				break;
 				
 			case FAIL:
@@ -499,15 +538,15 @@ public class Regex {
 				break;
 				
 			case TESTCHAR:
-				System.out.println("\tTestChar "+instrucao.ITestChar().getCaracter()+" "+instrucao.ITestChar().getLabel());
+				System.out.println("\tTestChar "+instrucao.ITestChar().getCaracter()+" "+labelDesvio);
 				break;
 				
 			case TESTCHARSET:
-				System.out.println("\tTestCharset "+instrucao.ITestCharset().getSet()+" "+instrucao.ITestChar().getLabel());
+				System.out.println("\tTestCharset "+instrucao.ITestCharset().getSet()+" "+labelDesvio);
 				break;
 			
 			case TESTANY:
-				System.out.println("\tTestAny "+instrucao.ITestAny().getLabel());
+				System.out.println("\tTestAny "+labelDesvio);
 				break;
 
 			default:
@@ -516,298 +555,6 @@ public class Regex {
 			
 		}
 		
-	}
-	
-	public Integer rodarInstrucoes(ArrayList<Instrucao> instrucoes, String texto, HashMap<String, Instrucao> instrucoesLabel){
-		
-		EstadoMaquina estadoMaquina = new EstadoMaquina();
-		estadoMaquina.setEstadoCommit(EstadoMaquina.EstadoCommit.COMMIT);
-		int posicaoNoTexto = 0;
-		//int tamanhoTextoCasadoCommitado = 0;
-		int tamanhoTextoCasado = 0;
-		
-		ArrayList<EstadoMaquina> pilhaRetorno = new ArrayList<EstadoMaquina>();
-		ArrayList<String> desvioFalha = new ArrayList<String>();
-		ArrayList<Integer> desvioChamada = new ArrayList<Integer>();
-		ArrayList<Integer> pilhaCaptures = new ArrayList<Integer>();
-		
-		if(instrucoes == null || instrucoes.size() == 0){
-			return 0;
-		}
-		
-		int i = 0;
-		Instrucao instrucaoAtual = instrucoes.get(0);
-		while(instrucaoAtual !=null && instrucaoAtual.getTipoInstrucao() != TipoInstrucao.END){
-			
-			boolean falhou = false;
-			
-			if(instrucaoAtual.getTipoInstrucao() == TipoInstrucao.CHAR){
-				
-				if(posicaoNoTexto >= texto.length()){
-					falhou = true;
-				}else if(!instrucaoAtual.IChar().isVazio()){
-					if(texto.charAt(posicaoNoTexto) == instrucaoAtual.IChar().getCaracter()){
-						tamanhoTextoCasado++;
-						posicaoNoTexto++;
-						System.out.println(posicaoNoTexto+" Casou "+instrucaoAtual.IChar().getCaracter());
-					}else{
-						System.out.println("Falhou ao comparar: "+texto.charAt(posicaoNoTexto)+"\tcom:"+instrucaoAtual.IChar().getCaracter());
-						falhou = true;
-					}
-				}
-				
-				if(delegate != null){
-					delegate.rodouInstrucao(instrucaoAtual);
-				}
-				
-			}else if(instrucaoAtual.getTipoInstrucao() == TipoInstrucao.CHARSET){
-				
-				if(posicaoNoTexto >= texto.length()){
-					falhou = true;
-				}else if(instrucaoAtual.ICharset().isCharecterIn(texto.charAt(posicaoNoTexto))){
-					System.out.println("Caractere no conjunto "+texto.charAt(posicaoNoTexto));
-					tamanhoTextoCasado++;
-					posicaoNoTexto++;
-				}else{
-					System.out.println("Falhou ao comparar "+texto.charAt(posicaoNoTexto)+" no conjunto: "+texto.charAt(posicaoNoTexto)+" "+instrucaoAtual.ICharset().getSet());
-					falhou = true;
-				}
-				
-				if(delegate != null){
-					delegate.rodouInstrucao(instrucaoAtual);
-				}
-				
-			}else if(instrucaoAtual.getTipoInstrucao() == TipoInstrucao.ANY){
-				
-				if(posicaoNoTexto >= texto.length()){
-					falhou = true;
-				}else{
-					tamanhoTextoCasado++;
-					posicaoNoTexto++;
-				}
-				
-				//System.out.println("Casou qualquer "+posicaoNoTexto);
-				
-				if(delegate != null){
-					delegate.rodouInstrucao(instrucaoAtual);
-				}
-			}else if(instrucaoAtual.getTipoInstrucao() == TipoInstrucao.CHOICE){
-				
-				//System.out.println("CHOICE "+estadoMaquina.getTamanhoTextoCasado());
-				
-				pilhaRetorno.add(estadoMaquina);
-				int posicaoInstrucao = i;
-				EstadoMaquina newEstadoMaquina = new EstadoMaquina();
-				newEstadoMaquina.setEstadoCommit(EstadoMaquina.EstadoCommit.NO_COMMIT);
-				newEstadoMaquina.setTamanhoTextoCasado(estadoMaquina.getTamanhoTextoCasado());
-				newEstadoMaquina.setPosicaoInstrucao(posicaoInstrucao);
-				newEstadoMaquina.setPosicaoTexto(posicaoNoTexto);
-				estadoMaquina = newEstadoMaquina;
-				desvioFalha.add(instrucaoAtual.IChoice().getLabel());
-				
-				if(delegate != null){
-					delegate.rodouInstrucao(instrucaoAtual);
-				}
-				
-			}else if(instrucaoAtual.getTipoInstrucao() == TipoInstrucao.COMMIT){
-				
-				//System.out.println("COMMIT "+estadoMaquina.getTamanhoTextoCasado());
-
-				EstadoMaquina ultimoEstadoMaquina = pilhaRetorno.get(pilhaRetorno.size() - 1);
-				pilhaRetorno.remove(pilhaRetorno.size() - 1);
-				desvioFalha.remove(desvioFalha.size() - 1);
-				estadoMaquina.setEstadoCommit(ultimoEstadoMaquina.getEstadoCommit());
-				estadoMaquina.setTamanhoTextoCasado(tamanhoTextoCasado);
-				estadoMaquina.setPosicaoTexto(posicaoNoTexto);
-				//pilhaRetorno.add(estadoMaquina);
-				
-				if(delegate != null){
-					delegate.rodouInstrucao(instrucaoAtual);
-				}
-				
-				instrucaoAtual =  instrucoesLabel.get(instrucaoAtual.ICommit().getLabel());
-				
-				i = instrucoes.indexOf(instrucaoAtual);
-				continue;
-				
-			}else if(instrucaoAtual.getTipoInstrucao() == TipoInstrucao.BACKCOMMIT){
-				
-				
-				EstadoMaquina ultimoEstadoMaquina = pilhaRetorno.get(pilhaRetorno.size() - 1);
-				pilhaRetorno.remove(pilhaRetorno.size() - 1);
-				desvioFalha.remove(desvioFalha.size() - 1);
-				estadoMaquina.setEstadoCommit(ultimoEstadoMaquina.getEstadoCommit());
-				estadoMaquina.setTamanhoTextoCasado(ultimoEstadoMaquina.getTamanhoTextoCasado());
-				estadoMaquina.setPosicaoTexto(ultimoEstadoMaquina.getPosicaoTexto());
-				
-				tamanhoTextoCasado = ultimoEstadoMaquina.getTamanhoTextoCasado();
-				
-				if(delegate != null){
-					delegate.rodouInstrucao(instrucaoAtual);
-				}
-				
-				instrucaoAtual =  instrucoesLabel.get(instrucaoAtual.IBackCommit().getLabel());
-				
-				i = instrucoes.indexOf(instrucaoAtual);
-				continue;
-				
-			}else if(instrucaoAtual.getTipoInstrucao() == TipoInstrucao.PARTIALCOMMIT){
-
-				pilhaRetorno.get(pilhaRetorno.size() - 1).setTamanhoTextoCasado(tamanhoTextoCasado);
-				pilhaRetorno.get(pilhaRetorno.size() - 1).setPosicaoTexto(posicaoNoTexto);
-				
-				if(delegate != null){
-					delegate.rodouInstrucao(instrucaoAtual);
-				}
-				
-				instrucaoAtual =  instrucoesLabel.get(instrucaoAtual.IPartialCommit().getLabel());
-				
-				i = instrucoes.indexOf(instrucaoAtual);
-				continue;
-				
-			}else if(instrucaoAtual.getTipoInstrucao() == TipoInstrucao.CALL){
-				desvioChamada.add(i+1);
-				
-				if(delegate != null){
-					delegate.rodouInstrucao(instrucaoAtual);
-				}
-				
-				instrucaoAtual =  instrucoesLabel.get(instrucaoAtual.ICall().getLabel());
-				i = instrucoes.indexOf(instrucaoAtual);
-				continue;
-			}else if(instrucaoAtual.getTipoInstrucao() == TipoInstrucao.SPAN){
-				
-				//posicaoNoTexto++;
-				
-				for(; posicaoNoTexto < texto.length(); posicaoNoTexto++, tamanhoTextoCasado++){
-					char c = texto.charAt(posicaoNoTexto);
-					//System.out.println("Analizou "+c);
-					if(instrucaoAtual.ISpan().contem(c)) break;
-				}
-				
-				/*if(posicaoNoTexto >= texto.length()){
-					break;
-				}*/
-				
-				i++;
-				instrucaoAtual = instrucoes.get(i);
-				
-				estadoMaquina.setTamanhoTextoCasado(tamanhoTextoCasado);
-				estadoMaquina.setPosicaoTexto(posicaoNoTexto);
-				estadoMaquina.setPosicaoInstrucao(i);
-				continue;
-				
-			}else if(instrucaoAtual.getTipoInstrucao() == TipoInstrucao.JUMP){
-				
-				if(delegate != null){
-					delegate.rodouInstrucao(instrucaoAtual);
-				}
-				
-				instrucaoAtual =  instrucoesLabel.get(instrucaoAtual.IJump().getLabel());
-				i = instrucoes.indexOf(instrucaoAtual);
-				continue;
-			}else if(instrucaoAtual.getTipoInstrucao() == TipoInstrucao.FAIL){
-				
-				if(delegate != null){
-					delegate.rodouInstrucao(instrucaoAtual);
-				}
-				
-				falhou = true;
-			}else if(instrucaoAtual.getTipoInstrucao() == TipoInstrucao.RETURN){
-				
-				if(delegate != null){
-					delegate.rodouInstrucao(instrucaoAtual);
-				}
-				
-				i = desvioChamada.get(desvioChamada.size() - 1);
-				instrucaoAtual = instrucoes.get(i);
-				
-				desvioChamada.remove(desvioChamada.size() - 1);
-				
-				estadoMaquina.setPosicaoInstrucao(i);
-				estadoMaquina.setPosicaoTexto(posicaoNoTexto);
-				estadoMaquina.setTamanhoTextoCasado(tamanhoTextoCasado);
-				continue;
-			}else if(instrucaoAtual.getTipoInstrucao() == TipoInstrucao.CAPTURE){
-				
-				if(instrucaoAtual.ICapture().getTipo() == TipoCapture.BEGIN){
-					pilhaCaptures.add(posicaoNoTexto);
-				}else{
-					int posicaoInicialCapture = pilhaCaptures.get(pilhaCaptures.size() - 1);
-					pilhaCaptures.remove(pilhaCaptures.size() - 1);
-					
-					if(posicaoNoTexto <= posicaoInicialCapture){
-						captures.add("");
-					}else{
-						captures.add(texto.substring(posicaoInicialCapture, posicaoNoTexto));
-					}
-				}
-				
-				if(delegate != null){
-					delegate.rodouInstrucao(instrucaoAtual);
-				}
-				
-			}
-			
-			if(falhou){
-				
-				if(pilhaRetorno.size() > 0){
-					estadoMaquina = pilhaRetorno.get(pilhaRetorno.size() - 1);
-					pilhaRetorno.remove(pilhaRetorno.size() - 1);
-					
-					tamanhoTextoCasado = estadoMaquina.getTamanhoTextoCasado();
-					posicaoNoTexto = estadoMaquina.getPosicaoTexto();
-					
-					if(desvioFalha.size() > 0){
-						String labelDesvio = desvioFalha.get(desvioFalha.size() - 1);
-						desvioFalha.remove(desvioFalha.size() - 1);
-						instrucaoAtual = instrucoesLabel.get(labelDesvio);
-						i = instrucoes.indexOf(instrucaoAtual);
-						
-						
-						//System.out.println(instrucaoAtual.toString()+" Tamanho "+estadoMaquina.getTamanhoTextoCasado());
-						continue;
-					}
-				}else{
-					tamanhoTextoCasado = -1;
-					estadoMaquina.setTamanhoTextoCasado(tamanhoTextoCasado);
-					break;
-				}
-			
-				
-			}
-			
-			if(estadoMaquina.getEstadoCommit() == EstadoMaquina.EstadoCommit.COMMIT){
-				estadoMaquina.setPosicaoTexto(posicaoNoTexto);
-				estadoMaquina.setTamanhoTextoCasado(tamanhoTextoCasado);
-			}
-			
-			i++;
-			if(i < instrucoes.size()){
-				instrucaoAtual = instrucoes.get(i);
-			}
-			
-		}
-		
-		if(instrucaoAtual != null && (instrucaoAtual.getTipoInstrucao() == TipoInstrucao.END || (posicaoNoTexto == texto.length() && estadoMaquina.getEstadoCommit() == EstadoMaquina.EstadoCommit.COMMIT))){
-			estadoMaquina.setPosicaoTexto(posicaoNoTexto);
-			estadoMaquina.setTamanhoTextoCasado(tamanhoTextoCasado);
-		}
-		
-		/*if(posicaoNoTexto == texto.length() && i < instrucoes.size() - 1){
-			estadoMaquina.setTamanhoTextoCasado(-1);
-			System.out.println("Corre��ao");
-		}*/
-
-		
-		//System.out.println("Texto Casado: "+ (estadoMaquina.getTamanhoTextoCasado()+1));
-		
-		if(estadoMaquina.getTamanhoTextoCasado() == -1 || desvioChamada.size() > 0){
-			//System.out.println(desvioChamada.size()+" Retornou aqui "+estadoMaquina.getTamanhoTextoCasado());
-			return null;
-		}
-		
-		return estadoMaquina.getPosicaoTexto()+1;
 	}
 
 	public Integer match(String padraoString, String texto){
@@ -832,16 +579,8 @@ public class Regex {
 		
 		labelsIntrucao = new HashMap<Instrucao, String>();
 		instrucoesLabel = new HashMap<String, Instrucao>();
-		nextLabels = new ArrayList<String>();
-		previousLabels = new ArrayList<String>();
-		gramaticasCriadasLabels = new ArrayList<String>();
 		
-		String labelEnd = "E";
-		IEnd end = new IEnd();
-		labelsIntrucao.put(end, labelEnd);
-		nextLabels.add(labelEnd);
 		ArrayList<Instrucao> instrucoes = instrucoes(padrao);
-		instrucoes.add(end);
 		
 		for(int i = 0; i < labelsIntrucao.keySet().size(); i++){
 			Instrucao instrucao = (Instrucao) labelsIntrucao.keySet().toArray()[i];
@@ -849,8 +588,11 @@ public class Regex {
 			instrucoesLabel.put(label, instrucao);
 		}
 		
-		imprimirInstrucoes(instrucoes, labelsIntrucao);
-		return rodarInstrucoes(instrucoes, texto, instrucoesLabel);
+		//imprimirInstrucoes(instrucoes, labelsIntrucao);
+		Maquina maquina = new Maquina(texto, instrucoes);
+		maquina.run();
+		return 0;
+		//return rodarInstrucoes(instrucoes, texto, instrucoesLabel);
 	}
 	
 	public static void main(String[] args) {
@@ -864,9 +606,11 @@ public class Regex {
 		
 		//PartialCommit example
 		//regex.usePartialCommitOptimization = true;
-		System.out.println("Texto Casado " + regex.match("Soma <- Produto (('+' / '-') Produto)*\n"
-				+ "Produto <- Valor (('*' / '/') Valor)*\n"
-				+ "Valor <- [0-9]+ / '(' Expr ')'", "1+2*2"));
+		/*System.out.println("Texto Casado " + regex.match("Expr <- Soma\n"
+				+"Valor <- [0-9]+ / '(' Expr ')'\n"
+				+"Produto <- Valor (('*' / '/') Valor)*\n"
+				+"Soma <- Produto (('+' / '-') Produto)*", "1+2*2"));*/
+		System.out.println("Texto Casado " + regex.match("A <- 'ana' / . A", "&testeee&"));
 	}
 	
 }

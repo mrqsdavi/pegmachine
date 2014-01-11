@@ -1,39 +1,62 @@
+import java.util.ArrayList;
+
 
 public class EstadoMaquina {
-	
-	public enum EstadoCommit{
-		NO_COMMIT,
-		COMMIT
-	}
 
-	private int posicaoInstrucao;
-	private int posicaoTexto;
-	private int tamanhoTextoCasado;
-	private EstadoCommit estadoCommit;
+	private int p;
+	private int i;
+	private int tamanhoPilha;
+	private EstadoMaquina pilhaEstados[];
+	private ArrayList<String> capturas;
 	
-	public int getPosicaoInstrucao() {
-		return posicaoInstrucao;
+	public EstadoMaquina(){
+		p = -1;
+		i = -1;
+		tamanhoPilha=0;
+		pilhaEstados = null;
+		capturas = new ArrayList<>();
 	}
-	public void setPosicaoInstrucao(int posicaoInstrucao) {
-		this.posicaoInstrucao = posicaoInstrucao;
+	
+	public void inicializar(){
+		pilhaEstados = new EstadoMaquina[100000000];
 	}
-	public EstadoCommit getEstadoCommit() {
-		return estadoCommit;
+	public int getP() {
+		return p;
 	}
-	public void setEstadoCommit(EstadoCommit estadoCommit) {
-		this.estadoCommit = estadoCommit;
+	public void setP(int p) {
+		this.p = p;
 	}
-	public int getTamanhoTextoCasado() {
-		return tamanhoTextoCasado;
+	public int getI() {
+		return i;
 	}
-	public void setTamanhoTextoCasado(int tamanhoTextoCasado) {
-		this.tamanhoTextoCasado = tamanhoTextoCasado;
+	public void setI(int i) {
+		this.i = i;
 	}
-	public int getPosicaoTexto() {
-		return posicaoTexto;
+	public ArrayList<String> getCapturas() {
+		return capturas;
 	}
-	public void setPosicaoTexto(int posicaoTexto) {
-		this.posicaoTexto = posicaoTexto;
+	public void setCapturas(ArrayList<String> capturas) {
+		this.capturas = capturas;
+	}
+	public void incI(){
+		i++;
+	}
+	public void incP(){
+		p++;
+	}
+	public void addEstado(EstadoMaquina estado){
+		pilhaEstados[tamanhoPilha]=estado;
+		tamanhoPilha++;
+	}
+	public EstadoMaquina popEstado(){
+		
+		if(tamanhoPilha>0){
+			EstadoMaquina estado = pilhaEstados[tamanhoPilha-1];
+			pilhaEstados[tamanhoPilha-1]=null;
+			tamanhoPilha--;
+			return estado;
+		}
+		return null;
 	}
 	
 }

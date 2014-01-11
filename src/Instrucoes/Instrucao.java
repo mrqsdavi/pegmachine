@@ -2,6 +2,25 @@ package Instrucoes;
 
 public abstract class Instrucao {
 	
+	private Instrucao instrucaoDesvio;
+	private int indexDesvio;
+	
+	public Instrucao getInstrucaoDesvio() {
+		return instrucaoDesvio;
+	}
+
+	public void setInstrucaoDesvio(Instrucao instrucaoDesvio) {
+		this.instrucaoDesvio = instrucaoDesvio;
+	}
+	
+	public int getIndexDesvio() {
+		return indexDesvio;
+	}
+
+	public void setIndexDesvio(int indexDesvio) {
+		this.indexDesvio = indexDesvio;
+	}
+
 	public TipoInstrucao getTipoInstrucao(){
 		return null;
 	}
