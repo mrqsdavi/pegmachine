@@ -252,7 +252,22 @@ public class Regex {
 		}
 			break;
 			
-		case E:
+		case E:{
+
+            IChoice iChoice = new IChoice("");
+            IBackCommit iBackCommit = new IBackCommit("");
+            IFail iFail = new IFail();
+
+            iChoice.setInstrucaoDesvio(iFail);
+            iBackCommit.setInstrucaoDesvio(next);
+
+            ArrayList<Instrucao> instrucoesRepeticao = instrucoesDoPadrao(padrao.e().getPadrao());
+
+            retorno.add(iChoice);
+            retorno.addAll(instrucoesRepeticao);
+            retorno.add(iBackCommit);
+            retorno.add(iFail);
+        }
 			break;
 		
 		case NAO:
@@ -302,69 +317,7 @@ public class Regex {
 		next = backupNext;
 		previous = backupPrevious;
 		
-		/*if(padrao.getTipo() == TipoPadrao.ESCOLHA_ORDENADA){
-
-			for(int i = 0; i < padrao.escolhaOrdenada().getPadroes().size() - 1; i++){
-				if(previousLabels.size() > 0){
-					
-					Padrao padraoAtualEO = padrao.escolhaOrdenada().getPadroes().get(i);
-					
-					boolean usarHeadFail = useHeadFailOptimization && padraoAtualEO.getTipo() == TipoPadrao.SEQUENCIA;
-					
-					String labelInstrucao = previousLabels.get(previousLabels.size() - 1);
-					previousLabels.remove(previousLabels.size() - 1);
-					
-					String labelChoice = "L"+(labelsIntrucao.size() + 1);
-					IChoice choice = new IChoice(labelChoice);
-					ICommit commit = new ICommit(nextLabels.get(nextLabels.size() - 1));
-					
-					if(usarHeadFail){
-						ITestChar testChar = new ITestChar(padraoAtualEO.sequencia().getTexto().charAt(0), labelChoice);
-						labelsIntrucao.put(choice, labelInstrucao);
-						retorno.add(testChar);
-						
-						String textoSequencia = padraoAtualEO.sequencia().getTexto();
-						
-						padraoAtualEO = new Sequencia(textoSequencia.substring(1, textoSequencia.length()));
-					}else{
-						System.out.println(padraoAtualEO+" Não usou headFail "+useHeadFailOptimization);
-						labelsIntrucao.put(choice, labelInstrucao);
-					}
-					
-					retorno.add(choice);
-					
-					String labelCommit = "L"+(labelsIntrucao.size()+1);
-					labelsIntrucao.put(commit, labelCommit);
-					nextLabels.add(labelCommit);
-					
-					String labelPrimeiraInstrucao = "L"+(labelsIntrucao.size() + 1);
-					labelsIntrucao.put(null, labelPrimeiraInstrucao);
-					previousLabels.add(labelPrimeiraInstrucao);
-					
-					ArrayList<Instrucao> instrucoesPardraoAtual = instrucoesDoPadrao(padraoAtualEO);
-					
-					if(padraoAtualEO.getTipo() == TipoPadrao.REPETICAO && padraoAtualEO.repeticao().getTipoRepeticao() == TipoRepeticao.ZERO_OU_MAIS){
-						//instrucoesPardraoAtual.remove(0);
-						//instrucoesPardraoAtual.remove(instrucoesPardraoAtual.size() - 1);
-					}
-					
-					nextLabels.remove(labelCommit);
-					
-					retorno.addAll(instrucoesPardraoAtual);
-					retorno.add(commit);
-					previousLabels.remove(labelInstrucao);
-					previousLabels.add(labelChoice);
-				}
-			}
-			
-			String labelInstrucao = previousLabels.get(previousLabels.size() - 1);
-			ArrayList<Instrucao> instrucoesUltimoPadrao = instrucoesDoPadrao(padrao.escolhaOrdenada().getPadroes().get(padrao.escolhaOrdenada().getPadroes().size() - 1));
-			Instrucao primeiraInstrucaoEO = instrucoesUltimoPadrao.get(0);
-			labelsIntrucao.put(primeiraInstrucaoEO, labelInstrucao);
-			retorno.addAll(instrucoesUltimoPadrao);
-			
-			
-		}else if(padrao.getTipo() == TipoPadrao.E){
+		/*if(padrao.getTipo() == TipoPadrao.E){
 			
 			String commitNextLabel = nextLabels.get(nextLabels.size() - 1);		
 			String choiceNextLabel = "L"+(labelsIntrucao.size() + 1); 
@@ -588,7 +541,7 @@ public class Regex {
 			instrucoesLabel.put(label, instrucao);
 		}
 		
-		//imprimirInstrucoes(instrucoes, labelsIntrucao);
+		imprimirInstrucoes(instrucoes, labelsIntrucao);
 		Maquina maquina = new Maquina(texto, instrucoes);
 		maquina.run();
 		return 0;
@@ -610,7 +563,7 @@ public class Regex {
 				+"Valor <- [0-9]+ / '(' Expr ')'\n"
 				+"Produto <- Valor (('*' / '/') Valor)*\n"
 				+"Soma <- Produto (('+' / '-') Produto)*", "1+2*2"));*/
-		System.out.println("Texto Casado " + regex.match("A <- 'ana' / . A", "&testeee&"));
+		System.out.println("Texto Casado " + regex.match("A <- 'teste'&'ana''ana'", "testeana"));
 	}
 	
 }

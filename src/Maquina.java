@@ -35,8 +35,8 @@ public class Maquina {
 	
 	public void run(){
 		
-		while(estado.getP() < instrucoes.size() && estado.getI() < entrada.length()){
-			
+		while(estado.getP() < instrucoes.size()){
+
 			Instrucao instrucao = instrucoes.get(estado.getP());
 			
 			boolean falhou = false;
@@ -97,10 +97,12 @@ public class Maquina {
 				break;
 				
 			case BACKCOMMIT:{
+                System.out.println("BACKCOMMIT: "+estado.getI());
 				EstadoMaquina estadoAntigo = estado.popEstado();
 				estado.setCapturas(estadoAntigo.getCapturas());
 				estado.setI(estadoAntigo.getI());
 				estado.setP(instrucao.getIndexDesvio());
+                System.out.println(""+estado.getI());
 			}
 				break;
 				
