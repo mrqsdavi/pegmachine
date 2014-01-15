@@ -290,7 +290,9 @@ public class Regex {
         }
 			break;
 			
-		case OPCIONAL:
+		case OPCIONAL:{
+
+        }
 			break;
 			
 		case ATE:
@@ -334,30 +336,7 @@ public class Regex {
 		next = backupNext;
 		previous = backupPrevious;
 		
-		/*if(padrao.getTipo() == TipoPadrao.NAO){
-			
-			String commitNextLabel = "L"+(labelsIntrucao.size() + 1);			
-			String choiceNextLabel = nextLabels.get(nextLabels.size() - 1);
-			
-			IChoice iChoice = new IChoice(choiceNextLabel);
-			ICommit iCommit = new ICommit(commitNextLabel);
-			IFail iFail = new IFail();
-			labelsIntrucao.put(iFail, commitNextLabel);
-
-			nextLabels.add(commitNextLabel);
-			
-			ArrayList<Instrucao> instrucoesRepeticao = instrucoesDoPadrao(padrao.nao().getPadrao());
-			
-			nextLabels.remove(commitNextLabel);
-			
-			retorno.add(iChoice);
-			retorno.addAll(instrucoesRepeticao);
-			retorno.add(iCommit);
-			retorno.add(iFail);
-			
-			
-			
-		}else if(padrao.getTipo() == TipoPadrao.OPCIONAL){
+		/*if(padrao.getTipo() == TipoPadrao.OPCIONAL){
 					
 			String choiceNextLabel = nextLabels.get(nextLabels.size() - 1);
 			String labelProximaInstrucao = "L"+(labelsIntrucao.size() + 1);

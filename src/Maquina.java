@@ -166,7 +166,6 @@ public class Maquina {
 					estado.setI(estadoAntigo.getI());
 					
 				}else{
-                    System.out.println("NADA");
 					break;
 				}
 				
