@@ -270,7 +270,24 @@ public class Regex {
         }
 			break;
 		
-		case NAO:
+		case NAO:{
+
+            IChoice iChoice = new IChoice("");
+            ICommit iCommit = new ICommit("");
+            IFail iFail = new IFail();
+
+            iChoice.setInstrucaoDesvio(next);
+            iCommit.setInstrucaoDesvio(iFail);
+
+            next = iFail;
+
+            ArrayList<Instrucao> instrucoesRepeticao = instrucoesDoPadrao(padrao.nao().getPadrao());
+
+            retorno.add(iChoice);
+            retorno.addAll(instrucoesRepeticao);
+            retorno.add(iCommit);
+            retorno.add(iFail);
+        }
 			break;
 			
 		case OPCIONAL:
@@ -317,26 +334,7 @@ public class Regex {
 		next = backupNext;
 		previous = backupPrevious;
 		
-		/*if(padrao.getTipo() == TipoPadrao.E){
-			
-			String commitNextLabel = nextLabels.get(nextLabels.size() - 1);		
-			String choiceNextLabel = "L"+(labelsIntrucao.size() + 1); 
-			
-			IChoice iChoice = new IChoice(choiceNextLabel);
-			IBackCommit iBackCommit = new IBackCommit(commitNextLabel);
-			IFail iFail = new IFail();
-			labelsIntrucao.put(iFail, choiceNextLabel);
-			
-			ArrayList<Instrucao> instrucoesRepeticao = instrucoesDoPadrao(padrao.e().getPadrao());
-			
-			
-			retorno.add(iChoice);
-			retorno.addAll(instrucoesRepeticao);
-			retorno.add(iBackCommit);
-			retorno.add(iFail);
-			
-			
-		}else if(padrao.getTipo() == TipoPadrao.NAO){
+		/*if(padrao.getTipo() == TipoPadrao.NAO){
 			
 			String commitNextLabel = "L"+(labelsIntrucao.size() + 1);			
 			String choiceNextLabel = nextLabels.get(nextLabels.size() - 1);
@@ -563,7 +561,7 @@ public class Regex {
 				+"Valor <- [0-9]+ / '(' Expr ')'\n"
 				+"Produto <- Valor (('*' / '/') Valor)*\n"
 				+"Soma <- Produto (('+' / '-') Produto)*", "1+2*2"));*/
-		System.out.println("Texto Casado " + regex.match("A <- 'teste'&'ana''ana'", "testeana"));
+		System.out.println("Texto Casado " + regex.match("A <- 'teste'!'ana'", "testeana"));
 	}
 	
 }

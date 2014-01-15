@@ -97,12 +97,10 @@ public class Maquina {
 				break;
 				
 			case BACKCOMMIT:{
-                System.out.println("BACKCOMMIT: "+estado.getI());
 				EstadoMaquina estadoAntigo = estado.popEstado();
 				estado.setCapturas(estadoAntigo.getCapturas());
 				estado.setI(estadoAntigo.getI());
 				estado.setP(instrucao.getIndexDesvio());
-                System.out.println(""+estado.getI());
 			}
 				break;
 				
@@ -165,12 +163,10 @@ public class Maquina {
 				EstadoMaquina estadoAntigo = estado.popEstado();
 				if(estadoAntigo!=null){
 					estado.setP(estadoAntigo.getP());
-					
-					if(estadoAntigo.getI()>=0){
-						estado.setI(estadoAntigo.getI());
-					}
+					estado.setI(estadoAntigo.getI());
 					
 				}else{
+                    System.out.println("NADA");
 					break;
 				}
 				
