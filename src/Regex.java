@@ -260,6 +260,8 @@ public class Regex {
 
             iChoice.setInstrucaoDesvio(iFail);
             iBackCommit.setInstrucaoDesvio(next);
+            
+            next = iBackCommit;
 
             ArrayList<Instrucao> instrucoesRepeticao = instrucoesDoPadrao(padrao.e().getPadrao());
 
@@ -290,8 +292,22 @@ public class Regex {
         }
 			break;
 			
-		case OPCIONAL:{
-
+		case OPCIONAL:{		
+			
+			IChoice iChoice = new IChoice("");
+			ICommit iCommit = new ICommit("");
+			
+			iChoice.setInstrucaoDesvio(next);
+			iCommit.setInstrucaoDesvio(next);
+			
+			next = iCommit;
+			
+			ArrayList<Instrucao> instrucoesRepeticao = instrucoesDoPadrao(padrao.opcional().getPadrao());
+			
+			retorno.add(iChoice);
+			retorno.addAll(instrucoesRepeticao);
+			retorno.add(iCommit);
+			
         }
 			break;
 			
@@ -540,7 +556,7 @@ public class Regex {
 				+"Valor <- [0-9]+ / '(' Expr ')'\n"
 				+"Produto <- Valor (('*' / '/') Valor)*\n"
 				+"Soma <- Produto (('+' / '-') Produto)*", "1+2*2"));*/
-		System.out.println("Texto Casado " + regex.match("A <- 'teste'!'ana'", "testeana"));
+		System.out.println("Texto Casado " + regex.match("A <- 'teste'!('ana')*'ano'", "testeano"));
 	}
 	
 }
