@@ -144,7 +144,7 @@ public class Regex {
 				}
 				
 				IPartialCommit partialCommit = new IPartialCommit("");
-				partialCommit.setInstrucaoDesvio(next);
+				partialCommit.setInstrucaoDesvio(instrucoesRepeticao.get(0));
 				retorno.add(partialCommit);
 				
 			}else{
@@ -544,7 +544,7 @@ public class Regex {
 	public static void main(String[] args) {
 		
 		Regex regex = new Regex();
-		regex.useHeadFailOptimization = true;
+		regex.usePartialCommitOptimization = true;
 		//System.out.println("Texto Casado " + regex.match("S <- 'davi'D'bola'*\nD <- 'teste'*?", "davitestebola"));
 		
 		//HeadFail example
@@ -556,7 +556,7 @@ public class Regex {
 				+"Valor <- [0-9]+ / '(' Expr ')'\n"
 				+"Produto <- Valor (('*' / '/') Valor)*\n"
 				+"Soma <- Produto (('+' / '-') Produto)*", "1+2*2"));*/
-		System.out.println("Texto Casado " + regex.match("A <- 'teste'!('ana')*'ano'", "testeano"));
+		System.out.println("Texto Casado " + regex.match("'a'*", "aaaaaaaaa"));
 	}
 	
 }
