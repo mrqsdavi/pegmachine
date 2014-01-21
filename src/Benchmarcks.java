@@ -28,7 +28,7 @@ public class Benchmarcks {
 			e.printStackTrace();
 		}
 		
-		/*System.out.println("Busca com otimização");
+		System.out.println("Busca com otimização");
 	    benchmark("@the", 0);
 	    benchmark("Omega", 0);
 	    benchmark("Alpha", 0);
@@ -37,7 +37,7 @@ public class Benchmarcks {
 	    benchmark("eartt", 0);
 
 	    System.out.println("\nBusca sem otimização");
-	    benchmark("'@the'", 1);*/
+	    benchmark("'@the'", 1);
 	    benchmark("'Omega'", 1);
 	    benchmark("'Alpha'", 1);
 	    benchmark("'amethysts'", 1);

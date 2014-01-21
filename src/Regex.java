@@ -22,6 +22,7 @@ public class Regex {
 	
 	public boolean useHeadFailOptimization = false;
 	public boolean usePartialCommitOptimization = false;
+	public boolean useSpanOptimization = false;
 
 	public ArrayList<Instrucao> instrucoes(Padrao padrao){
 
@@ -123,33 +124,42 @@ public class Regex {
 				retorno.addAll(instrucoes);
 			}
 			
-			IChoice choiceRepeticao = new IChoice("");
-			ICommit commitRepeticao = new ICommit("");
-			
-			choiceRepeticao.setInstrucaoDesvio(next);
-			commitRepeticao.setInstrucaoDesvio(choiceRepeticao);
-			
-			previous = choiceRepeticao;
-			
-			ArrayList<Instrucao> instrucoesRepeticao = instrucoesDoPadrao(padrao.repeticao().getPadrao());
-			
-			retorno.add(choiceRepeticao);
-			retorno.addAll(instrucoesRepeticao);
-			
-			if(usePartialCommitOptimization){
-				for(int i = 0; i < instrucoesRepeticao.size(); i++){
-					if(instrucoesRepeticao.get(i).getInstrucaoDesvio() == previous){
-						instrucoesRepeticao.get(i).setInstrucaoDesvio(instrucoesRepeticao.get(0));
-					}
-				}
+			if(useSpanOptimization && padrao.repeticao().getPadrao().getTipo() == TipoPadrao.CONJUNTO){
 				
-				IPartialCommit partialCommit = new IPartialCommit("");
-				partialCommit.setInstrucaoDesvio(instrucoesRepeticao.get(0));
-				retorno.add(partialCommit);
+				retorno.add(new ISpan(padrao.repeticao().getPadrao().conjunto().getConjuntoCaracteres()));
 				
 			}else{
-				retorno.add(commitRepeticao);
+				
+				IChoice choiceRepeticao = new IChoice("");
+				ICommit commitRepeticao = new ICommit("");
+				
+				choiceRepeticao.setInstrucaoDesvio(next);
+				commitRepeticao.setInstrucaoDesvio(choiceRepeticao);
+				
+				previous = choiceRepeticao;
+				
+				ArrayList<Instrucao> instrucoesRepeticao = instrucoesDoPadrao(padrao.repeticao().getPadrao());
+				
+				retorno.add(choiceRepeticao);
+				retorno.addAll(instrucoesRepeticao);
+				
+				if(usePartialCommitOptimization){
+					for(int i = 0; i < instrucoesRepeticao.size(); i++){
+						if(instrucoesRepeticao.get(i).getInstrucaoDesvio() == previous){
+							instrucoesRepeticao.get(i).setInstrucaoDesvio(instrucoesRepeticao.get(0));
+						}
+					}
+					
+					IPartialCommit partialCommit = new IPartialCommit("");
+					partialCommit.setInstrucaoDesvio(instrucoesRepeticao.get(0));
+					retorno.add(partialCommit);
+					
+				}else{
+					retorno.add(commitRepeticao);
+				}
+				
 			}
+			
 		}
 		break;
 		
@@ -544,7 +554,7 @@ public class Regex {
 	public static void main(String[] args) {
 		
 		Regex regex = new Regex();
-		regex.usePartialCommitOptimization = true;
+		regex.useSpanOptimization = true;
 		//System.out.println("Texto Casado " + regex.match("S <- 'davi'D'bola'*\nD <- 'teste'*?", "davitestebola"));
 		
 		//HeadFail example
@@ -556,7 +566,7 @@ public class Regex {
 				+"Valor <- [0-9]+ / '(' Expr ')'\n"
 				+"Produto <- Valor (('*' / '/') Valor)*\n"
 				+"Soma <- Produto (('+' / '-') Produto)*", "1+2*2"));*/
-		System.out.println("Texto Casado " + regex.match("'a'*", "aaaaaaaaa"));
+		System.out.println("Texto Casado " + regex.match("(.!'a')*", "aaaaaaaaa"));
 	}
 	
 }

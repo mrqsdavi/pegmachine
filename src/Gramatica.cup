@@ -127,12 +127,12 @@ concatenacao ::= padraoComposto:p1 padraoComposto:p2 {:Concatenacao c = new Conc
 padraoComposto ::= padraoSimples:p {:RESULT = p;:} |
 		   		   padraoComposto:p ASTERISCO {:
 		   		   
-		   		   boolean isScan = p.getTipo() == TipoPadrao.CONCATENACAO &&
+		   		   boolean isSpan = p.getTipo() == TipoPadrao.CONCATENACAO &&
 		   		   					p.concatenacao().get(0).getTipo() == TipoPadrao.PONTO &&
 		   		   					p.concatenacao().get(1).getTipo() == TipoPadrao.NAO &&
 		   		   					((Nao)p.concatenacao().get(1)).getPadrao().getTipo() == TipoPadrao.CONJUNTO;
 		   		   
-		   		   if(isScan){
+		   		   if(isSpan){
 		   		   		RESULT = new Ate(((Nao)p.concatenacao().get(1)).getPadrao());
 		   		   }else{
 		   		   		RESULT = new Repeticao(p, TipoRepeticao.ZERO_OU_MAIS);

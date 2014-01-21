@@ -126,7 +126,7 @@ public class Maquina {
 			case SPAN:
 				for(; estado.getI() < entrada.length(); estado.incI()){
 					char c = entrada.charAt(estado.getI());
-					if(instrucao.ISpan().contem(c)) break;
+					if(!instrucao.ISpan().contem(c)) break;
 				}
 				estado.incP();
 				break;
