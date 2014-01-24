@@ -7,6 +7,7 @@ public class Maquina {
 	private String entrada;
 	private ArrayList<Instrucao> instrucoes;
 	EstadoMaquina estado;
+	boolean rodouEnd = false;
 	
 	public Maquina(String entrada, ArrayList<Instrucao> instrucoes){
 		this.setEntrada(entrada);
@@ -135,6 +136,9 @@ public class Maquina {
 				estado.setP(instrucao.getIndexDesvio());
 				break;
 				
+			case FAILTWICE:
+				estado.popEstado();
+				
 			case FAIL:
 				falhou = true;
 				break;
@@ -148,6 +152,7 @@ public class Maquina {
 				
 			case END:
 				estado.incP();
+				rodouEnd = true;
 				break;
 
 			case CAPTURE:
@@ -166,12 +171,17 @@ public class Maquina {
 					estado.setI(estadoAntigo.getI());
 					
 				}else{
+					estado.setI(-1);
 					break;
 				}
 				
 			}
 			
 		}
+		
+		/*if(!rodouEnd){
+			estado.setI(-1);
+		}*/
 		
 		System.out.println("CASADO :"+estado.getI());
 	}

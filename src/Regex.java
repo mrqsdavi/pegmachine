@@ -23,6 +23,7 @@ public class Regex {
 	public boolean useHeadFailOptimization = false;
 	public boolean usePartialCommitOptimization = false;
 	public boolean useSpanOptimization = false;
+	public boolean useFailTwiceOptimization = false;
 
 	public ArrayList<Instrucao> instrucoes(Padrao padrao){
 
@@ -287,18 +288,34 @@ public class Regex {
             IChoice iChoice = new IChoice("");
             ICommit iCommit = new ICommit("");
             IFail iFail = new IFail();
+            IFailTwice iFailTwice = new IFailTwice();
 
             iChoice.setInstrucaoDesvio(next);
             iCommit.setInstrucaoDesvio(iFail);
+            
+            if(useFailTwiceOptimization){
+            	
+            	next = iFailTwice;
 
-            next = iFail;
+                ArrayList<Instrucao> instrucoesRepeticao = instrucoesDoPadrao(padrao.nao().getPadrao());
 
-            ArrayList<Instrucao> instrucoesRepeticao = instrucoesDoPadrao(padrao.nao().getPadrao());
+                retorno.add(iChoice);
+                retorno.addAll(instrucoesRepeticao);
+                retorno.add(iFailTwice);
+            	
+            }else{
+            	
+            	next = iFail;
 
-            retorno.add(iChoice);
-            retorno.addAll(instrucoesRepeticao);
-            retorno.add(iCommit);
-            retorno.add(iFail);
+                ArrayList<Instrucao> instrucoesRepeticao = instrucoesDoPadrao(padrao.nao().getPadrao());
+
+                retorno.add(iChoice);
+                retorno.addAll(instrucoesRepeticao);
+                retorno.add(iCommit);
+                retorno.add(iFail);
+            	
+            }
+
         }
 			break;
 			
@@ -554,7 +571,7 @@ public class Regex {
 	public static void main(String[] args) {
 		
 		Regex regex = new Regex();
-		regex.useSpanOptimization = true;
+		regex.useFailTwiceOptimization = true;
 		//System.out.println("Texto Casado " + regex.match("S <- 'davi'D'bola'*\nD <- 'teste'*?", "davitestebola"));
 		
 		//HeadFail example
@@ -566,7 +583,7 @@ public class Regex {
 				+"Valor <- [0-9]+ / '(' Expr ')'\n"
 				+"Produto <- Valor (('*' / '/') Valor)*\n"
 				+"Soma <- Produto (('+' / '-') Produto)*", "1+2*2"));*/
-		System.out.println("Texto Casado " + regex.match("(.!'a')*", "aaaaaaaaa"));
+		System.out.println("Texto Casado " + regex.match("'a'*!'b'", "aaaaaaaaa"));
 	}
 	
 }
