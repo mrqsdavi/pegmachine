@@ -59,6 +59,19 @@ public class Maquina {
 				estado.incP();
 				break;
 				
+			case TESTCHAR:
+				if(estado.getI() >= entrada.length()){
+					//System.out.println("Texto Acabou");
+					falhou = true;
+				}else if(entrada.charAt(estado.getI()) == instrucao.ITestChar().getCaracter()){
+					estado.incI();
+					estado.incP();
+					//System.out.println(estado.getI()+" Casou "+instrucao.IChar().getCaracter());
+				}else{
+					estado.setP(instrucao.getIndexDesvio());
+				}
+				break;
+				
 			case CHARSET:
 				//System.out.println(estado.getI()+" ENTRADA: "+entrada);
 				if(estado.getI() >= entrada.length()){

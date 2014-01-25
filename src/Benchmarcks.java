@@ -77,6 +77,10 @@ public class Benchmarcks {
 		String p = "S <- "+padraoTexto+" / .S";
 		
 		Regex r = new Regex();
+		r.useFailTwiceOptimization = false;
+		r.useHeadFailOptimization = false;
+		r.usePartialCommitOptimization = false;
+		r.useSpanOptimization = false;
         
         Integer position = r.match(p, texto);
                 
@@ -102,9 +106,14 @@ public class Benchmarcks {
 	public static Integer searchW(String padraoTexto, String texto){
 		
 		String x = padraoTexto.substring(0,1);
-		String p = "S <- '"+padraoTexto+"'/.~'"+x+"'S";
+		String p = "S <- '"+padraoTexto+"'/(.!'"+x+"')*S";
 		Regex r = new Regex();
-                
+               
+		r.useFailTwiceOptimization = true;
+		r.useHeadFailOptimization = true;
+		r.usePartialCommitOptimization = true;
+		r.useSpanOptimization = true;
+		
         Integer position = r.match(p, texto);
                 
         if(position == null){

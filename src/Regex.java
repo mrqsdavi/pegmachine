@@ -221,6 +221,7 @@ public class Regex {
 			for(int i = 0; i<padrao.escolhaOrdenada().getPadroes().size();i++){
 				
 				Padrao padraoAtual = padrao.escolhaOrdenada().getPadroes().get(i);
+				
 				Instrucao instrucaoNext = null;
 				
 				if(i==padrao.escolhaOrdenada().getPadroes().size()-1){
@@ -231,10 +232,29 @@ public class Regex {
 				
 				next = instrucaoNext;
 				
-				ArrayList<Instrucao> instrucoesPadraoAtual = instrucoesDoPadrao(padraoAtual);
-				retorno.addAll(instrucoesPadraoAtual);
+				ArrayList<Instrucao> instrucoesPadraoAtual = instrucoesDoPadrao(padraoAtual);				
 				
-				//FAZER AQUI O HEAD FAIL
+				int indexInstrucaoChoice = 0;
+				
+				if(useHeadFailOptimization){
+					
+					indexInstrucaoChoice = 1;
+					
+					switch (padraoAtual.getTipo()) {
+					case SEQUENCIA:
+						instrucoesPadraoAtual.remove(0);
+						ITestChar testChar = new ITestChar(padraoAtual.sequencia().getTexto().charAt(0), "");
+						testChar.setInstrucaoDesvio(instrucaoNext);
+						instrucoesPadraoAtual.add(0, testChar);
+						break;
+
+					default:
+						break;
+					}
+					
+				}
+				
+				retorno.addAll(instrucoesPadraoAtual);
 				
 				if(i!=padrao.escolhaOrdenada().getPadroes().size()-1){
 					IChoice choiceEscolha = new IChoice("");
@@ -245,7 +265,7 @@ public class Regex {
 					
 					instrucoesReais.add(choiceEscolha);
 					
-					retorno.add(0, choiceEscolha);
+					retorno.add(indexInstrucaoChoice, choiceEscolha);
 					retorno.add(commitEscolha);
 				}else{
 					instrucoesReais.add(instrucoesPadraoAtual.get(0));
@@ -511,7 +531,7 @@ public class Regex {
 				break;
 				
 			case TESTCHAR:
-				System.out.println("\tTestChar "+instrucao.ITestChar().getCaracter()+" "+labelDesvio);
+				System.out.println("\tTestChar '"+instrucao.ITestChar().getCaracter()+"' "+labelDesvio);
 				break;
 				
 			case TESTCHARSET:
@@ -571,7 +591,7 @@ public class Regex {
 	public static void main(String[] args) {
 		
 		Regex regex = new Regex();
-		regex.useFailTwiceOptimization = true;
+		regex.useHeadFailOptimization = true;
 		//System.out.println("Texto Casado " + regex.match("S <- 'davi'D'bola'*\nD <- 'teste'*?", "davitestebola"));
 		
 		//HeadFail example
@@ -583,7 +603,7 @@ public class Regex {
 				+"Valor <- [0-9]+ / '(' Expr ')'\n"
 				+"Produto <- Valor (('*' / '/') Valor)*\n"
 				+"Soma <- Produto (('+' / '-') Produto)*", "1+2*2"));*/
-		System.out.println("Texto Casado " + regex.match("'a'*!'b'", "aaaaaaaaa"));
+		System.out.println("Texto Casado " + regex.match("S <- 'livro' / . S", "aaaaaaaaalivroaaa"));
 	}
 	
 }
