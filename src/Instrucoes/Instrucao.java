@@ -84,6 +84,10 @@ public abstract class Instrucao {
 		return null;
 	}
 	
+	public IFind IFind(){
+		return null;
+	}
+	
 	public ITestChar ITestChar(){
 		return null;
 	}

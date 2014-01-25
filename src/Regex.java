@@ -11,9 +11,6 @@ public class Regex {
 	
 	private Instrucao end;
 	
-	private HashMap<Instrucao, String> labelsIntrucao;
-	private HashMap<String, Instrucao> instrucoesLabel;
-	
 	private String labelUltimaGramatica = "";
 	
 	private Instrucao next = null;
@@ -230,7 +227,12 @@ public class Regex {
 					instrucaoNext = instrucoesTemporarias.get(i+1);
 				}
 				
-				next = instrucaoNext;
+				IChoice choiceEscolha = new IChoice("");
+				ICommit commitEscolha = new ICommit("");
+				
+				//AINDA VERIFICAR TODOS OS CASOS
+				//ERA  next = instrucaoNext;
+				next = commitEscolha;
 				
 				ArrayList<Instrucao> instrucoesPadraoAtual = instrucoesDoPadrao(padraoAtual);				
 				
@@ -257,8 +259,6 @@ public class Regex {
 				retorno.addAll(instrucoesPadraoAtual);
 				
 				if(i!=padrao.escolhaOrdenada().getPadroes().size()-1){
-					IChoice choiceEscolha = new IChoice("");
-					ICommit commitEscolha = new ICommit("");
 					
 					choiceEscolha.setInstrucaoDesvio(instrucaoNext);
 					commitEscolha.setInstrucaoDesvio(backupNext);
@@ -359,7 +359,7 @@ public class Regex {
 			break;
 			
 		case ATE:
-			retorno.add(new ISpan(padrao.ate().getPadrao().conjunto().getConjuntoCaracteres()));
+			retorno.add(new IFind(padrao.ate().getPadrao().conjunto().getConjuntoCaracteres()));
 			break;
 		
 		case CADEIA_VAZIA:
@@ -398,56 +398,6 @@ public class Regex {
 		
 		next = backupNext;
 		previous = backupPrevious;
-		
-		/*if(padrao.getTipo() == TipoPadrao.OPCIONAL){
-					
-			String choiceNextLabel = nextLabels.get(nextLabels.size() - 1);
-			String labelProximaInstrucao = "L"+(labelsIntrucao.size() + 1);
-			previousLabels.add(labelProximaInstrucao);
-			
-			
-			IChoice iChoice = new IChoice(choiceNextLabel);
-			ICommit iCommit = new ICommit(choiceNextLabel);
-
-			
-			ArrayList<Instrucao> instrucoesRepeticao = instrucoesDoPadrao(padrao.opcional().getPadrao());
-			
-			if(instrucoesRepeticao.size() > 0){
-				Instrucao primeiraInstrucao = instrucoesRepeticao.get(0);
-				labelsIntrucao.put(primeiraInstrucao, labelProximaInstrucao);
-			}
-			
-			previousLabels.remove(labelProximaInstrucao);
-			
-			retorno.add(iChoice);
-			retorno.addAll(instrucoesRepeticao);
-			retorno.add(iCommit);		
-			
-			
-		}else if(padrao.getTipo() == TipoPadrao.ATE){
-			retorno.add(new ISpan(padrao.ate().getPadrao().conjunto().getConjuntoCaracteres()));
-		}else if(padrao.getTipo() == TipoPadrao.SEQUENCIA){
-			
-			String texto = padrao.sequencia().getTexto();
-			for(int i = 0; i < texto.length(); i++){					
-				retorno.add(new IChar(texto.charAt(i)));
-			}
-			
-		}else if(padrao.getTipo() == TipoPadrao.CADEIA_VAZIA){
-			retorno.add(new IChar(true));
-		}else if(padrao.getTipo() == TipoPadrao.SELF){
-			retorno.add(new ICall(labelUltimaGramatica));
-		}else if(padrao.getTipo() == TipoPadrao.CHAMADA){
-			retorno.add(new ICall(padrao.chamada().getLabel()));
-		}else if(padrao.getTipo() == TipoPadrao.PONTO){
-			
-			retorno.add(new IAny(padrao.ponto().getNumero()));
-			
-		}else if(padrao.getTipo() == TipoPadrao.CONJUNTO){
-			//Ainda deve ser destrinchado para intervalos tipo [a-zA-z]
-			retorno.add(new ICharset(padrao.conjunto().getTexto(), padrao.conjunto().getConjuntoCaracteres()));
-			
-		}*/
 		
 		return retorno;		
 	}
@@ -551,7 +501,6 @@ public class Regex {
 	}
 
 	public Integer match(String padraoString, String texto){
-
 		
 		InputStream is = new ByteArrayInputStream(padraoString.getBytes());
 		AnalizadorLexico lexico = new AnalizadorLexico(is);
@@ -563,29 +512,19 @@ public class Regex {
 			e.printStackTrace();
 		}
 		
-		System.out.println("Padrao Final: "+parser.padraoFinal.toString());
+		//System.out.println("Padrao Final: "+parser.padraoFinal.toString());
 		
 		return match(parser.padraoFinal, texto);
 	}
 	
 	public Integer match(Padrao padrao, String texto){
 		
-		labelsIntrucao = new HashMap<Instrucao, String>();
-		instrucoesLabel = new HashMap<String, Instrucao>();
-		
 		ArrayList<Instrucao> instrucoes = instrucoes(padrao);
 		
-		for(int i = 0; i < labelsIntrucao.keySet().size(); i++){
-			Instrucao instrucao = (Instrucao) labelsIntrucao.keySet().toArray()[i];
-			String label = labelsIntrucao.get(instrucao);
-			instrucoesLabel.put(label, instrucao);
-		}
-		
-		imprimirInstrucoes(instrucoes, labelsIntrucao);
+		imprimirInstrucoes(instrucoes, null);
 		Maquina maquina = new Maquina(texto, instrucoes);
 		maquina.run();
-		return 0;
-		//return rodarInstrucoes(instrucoes, texto, instrucoesLabel);
+		return maquina.getPosicaoEntrada();
 	}
 	
 	public static void main(String[] args) {

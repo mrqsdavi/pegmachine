@@ -6,7 +6,7 @@ public class EstadoMaquina {
 	private int p;
 	private int i;
 	private int tamanhoPilha;
-	private EstadoMaquina pilhaEstados[];
+	private ArrayList<EstadoMaquina> pilhaEstados;
 	private ArrayList<String> capturas;
 	
 	public EstadoMaquina(){
@@ -14,11 +14,11 @@ public class EstadoMaquina {
 		i = -1;
 		tamanhoPilha=0;
 		pilhaEstados = null;
-		capturas = new ArrayList<>();
+		//capturas = new ArrayList<>();
 	}
 	
 	public void inicializar(){
-		pilhaEstados = new EstadoMaquina[100000000];
+		pilhaEstados = new ArrayList<>();
 	}
 	public int getP() {
 		return p;
@@ -45,15 +45,13 @@ public class EstadoMaquina {
 		p++;
 	}
 	public void addEstado(EstadoMaquina estado){
-		pilhaEstados[tamanhoPilha]=estado;
-		tamanhoPilha++;
+		pilhaEstados.add(estado);
 	}
 	public EstadoMaquina popEstado(){
 		
-		if(tamanhoPilha>0){
-			EstadoMaquina estado = pilhaEstados[tamanhoPilha-1];
-			pilhaEstados[tamanhoPilha-1]=null;
-			tamanhoPilha--;
+		if(pilhaEstados.size()>0){
+			EstadoMaquina estado = pilhaEstados.get(pilhaEstados.size()-1);
+			pilhaEstados.remove(pilhaEstados.size()-1);
 			return estado;
 		}
 		return null;

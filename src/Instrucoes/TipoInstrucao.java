@@ -17,6 +17,7 @@ public enum TipoInstrucao {
 	FAILTWICE,
 	CAPTURE,
 	SPAN,
+	FIND,
 	TESTCHAR,
 	TESTCHARSET,
 	TESTANY

@@ -1,6 +1,7 @@
 eclipse.preferences.version=1
 encoding//src/Benchmarcks.java=UTF-8
 encoding//src/Gramatica.cup=UTF-8
+encoding//src/Maquina.java=UTF-8
 encoding//src/Regex.java=UTF-8
 encoding//src/benchmarks.lua=UTF-8
 encoding//src/parser.java=UTF-8

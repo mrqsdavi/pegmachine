@@ -35,3 +35,9 @@ nbproject/project.xml
 src/.DS_Store
 
 src/.DS_Store
+
+*.prefs
+
+*.prefs
+
+.settings/org.eclipse.core.resources.prefs

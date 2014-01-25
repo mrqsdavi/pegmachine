@@ -5,13 +5,15 @@ import Instrucoes.Instrucao;
 public class Maquina {
 
 	private String entrada;
-	private ArrayList<Instrucao> instrucoes;
+	private Instrucao instrucoes[];
 	EstadoMaquina estado;
 	boolean rodouEnd = false;
 	
 	public Maquina(String entrada, ArrayList<Instrucao> instrucoes){
+		Instrucao [] insArray = new Instrucao[instrucoes.size()];
+		insArray = instrucoes.toArray(insArray);
 		this.setEntrada(entrada);
-		this.setInstrucoes(instrucoes);
+		this.setInstrucoes(insArray);
 		estado = new EstadoMaquina();
 		estado.inicializar();
 		estado.setI(0);
@@ -26,19 +28,23 @@ public class Maquina {
 		this.entrada = entrada;
 	}
 
-	public ArrayList<Instrucao> getInstrucoes() {
+	public Instrucao[] getInstrucoes() {
 		return instrucoes;
 	}
 
-	public void setInstrucoes(ArrayList<Instrucao> instrucoes) {
+	public void setInstrucoes(Instrucao[] instrucoes) {
 		this.instrucoes = instrucoes;
+	}
+	
+	public int getPosicaoEntrada(){
+		return estado.getI();
 	}
 	
 	public void run(){
 		
-		while(estado.getP() < instrucoes.size()){
+		while(estado.getP() < instrucoes.length){
 
-			Instrucao instrucao = instrucoes.get(estado.getP());
+			Instrucao instrucao = instrucoes[estado.getP()];
 			
 			boolean falhou = false;
 			
@@ -145,6 +151,14 @@ public class Maquina {
 				estado.incP();
 				break;
 				
+			case FIND:
+				for(; estado.getI() < entrada.length(); estado.incI()){
+					char c = entrada.charAt(estado.getI());
+					if(instrucao.IFind().contem(c)) break;
+				}
+				estado.incP();
+				break;
+				
 			case JUMP:
 				estado.setP(instrucao.getIndexDesvio());
 				break;
@@ -195,8 +209,6 @@ public class Maquina {
 		/*if(!rodouEnd){
 			estado.setI(-1);
 		}*/
-		
-		System.out.println("CASADO :"+estado.getI());
 	}
 	
 }

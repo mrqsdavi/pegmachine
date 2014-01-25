@@ -28,7 +28,7 @@ public class Benchmarcks {
 			e.printStackTrace();
 		}
 		
-		System.out.println("Busca com otimização");
+		/*System.out.println("Busca com otimização");
 	    benchmark("@the", 0);
 	    benchmark("Omega", 0);
 	    benchmark("Alpha", 0);
@@ -42,7 +42,7 @@ public class Benchmarcks {
 	    benchmark("'Alpha'", 1);
 	    benchmark("'amethysts'", 1);
 	    benchmark("'heith'", 1);
-	    benchmark("'eartt'", 1);
+	    benchmark("'eartt'", 1);*/
 	    benchmark("[A-Za-z ]*", 1);
 	    benchmark("([a-zA-Z]+'Abram')",1);
 	    benchmark("([a-zA-Z]+'Joseph')",1);
@@ -56,7 +56,6 @@ public class Benchmarcks {
 	}
 	
 	public static void benchmark(String p, int tipo){
-		long startTime= System.currentTimeMillis();
 	    int posicao = -1; 
 	    
 	    if(tipo == 0){
@@ -67,9 +66,6 @@ public class Benchmarcks {
 	    	posicao = searchG(p, bibleText);
 	    }
 	    
-	    long endTime = System.currentTimeMillis();
-	    
-	    System.out.println(p+": " + posicao+" - "+(endTime-startTime)+"ms");
 	}
 	
 	public static Integer searchP(String padraoTexto, String texto){
@@ -82,11 +78,15 @@ public class Benchmarcks {
 		r.usePartialCommitOptimization = false;
 		r.useSpanOptimization = false;
         
+		long startTime= System.currentTimeMillis();
         Integer position = r.match(p, texto);
-                
+        long endTime = System.currentTimeMillis();
+        
         if(position == null){
         	return 0;
         }
+        
+        System.out.println(p+": " + position+" - "+(endTime-startTime)+"ms");
                 
 		return position;
 	}
@@ -94,11 +94,15 @@ public class Benchmarcks {
 	public static Integer searchG(String gramatica, String texto){
 		Regex r = new Regex();
                 
+		long startTime= System.currentTimeMillis();
         Integer position = r.match(gramatica, texto);
+        long endTime = System.currentTimeMillis();
                 
         if(position == null){
         	return 0;
         }
+        
+        System.out.println(gramatica+": " + position+" - "+(endTime-startTime)+"ms");
                 
 		return position;
 	}
@@ -106,7 +110,7 @@ public class Benchmarcks {
 	public static Integer searchW(String padraoTexto, String texto){
 		
 		String x = padraoTexto.substring(0,1);
-		String p = "S <- '"+padraoTexto+"'/(.!'"+x+"')*S";
+		String p = "S <- '"+padraoTexto+"'/~'"+x+"'S";
 		Regex r = new Regex();
                
 		r.useFailTwiceOptimization = true;
@@ -114,11 +118,15 @@ public class Benchmarcks {
 		r.usePartialCommitOptimization = true;
 		r.useSpanOptimization = true;
 		
+		long startTime= System.currentTimeMillis();
         Integer position = r.match(p, texto);
+        long endTime = System.currentTimeMillis();
                 
         if(position == null){
         	return 0;
         }
+        
+        System.out.println(p+": " + position+" - "+(endTime-startTime)+"ms");
                 
 		return position;
 	}
