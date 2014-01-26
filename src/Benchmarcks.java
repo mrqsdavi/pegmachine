@@ -42,16 +42,17 @@ public class Benchmarcks {
 	    benchmark("'Alpha'", 1);
 	    benchmark("'amethysts'", 1);
 	    benchmark("'heith'", 1);
-	    benchmark("'eartt'", 1);*/
+	    benchmark("'eartt'", 1);
 	    benchmark("[A-Za-z ]*", 1);
 	    benchmark("([a-zA-Z]+'Abram')",1);
-	    benchmark("([a-zA-Z]+'Joseph')",1);
+	    benchmark("([a-zA-Z]+'Joseph')",1);*/
 	    
 	    System.out.println("\nEffectiveness of optimizations");
-	    benchmark("S <- 'transparent' / . S", 2);
-	    benchmark("(!'transparent' .)* 'transparent'", 2);
-	    benchmark("S <- [a-zA-Z]+ ' '* 'transparent' / . S", 2);
-	    benchmark("(!([a-zA-Z]+ ' '* 'transparent') .)*", 2);
+	    benchmark("S <- 'Alpha' / . S", 2);
+	    benchmark("(!'Alpha' .)* 'Alpha'", 2);
+	    benchmark("S <- 'Alpha' /.~'A' S", 2);
+	    benchmark("(!([a-zA-Z]+ ' '* 'Alpha') .)*", 2);
+	    benchmark("(!([a-zA-Z]+ ' '* 'Alpha') .)*", 2);
 		
 	}
 	
@@ -73,10 +74,10 @@ public class Benchmarcks {
 		String p = "S <- "+padraoTexto+" / .S";
 		
 		Regex r = new Regex();
-		r.useFailTwiceOptimization = false;
-		r.useHeadFailOptimization = false;
-		r.usePartialCommitOptimization = false;
-		r.useSpanOptimization = false;
+		//r.useFailTwiceOptimization = false;
+		//r.useHeadFailOptimization = false;
+		//r.usePartialCommitOptimization = false;
+		//r.useSpanOptimization = false;
         
 		long startTime= System.currentTimeMillis();
         Integer position = r.match(p, texto);
@@ -93,6 +94,11 @@ public class Benchmarcks {
 	
 	public static Integer searchG(String gramatica, String texto){
 		Regex r = new Regex();
+		
+		r.useFailTwiceOptimization = true;
+		r.useHeadFailOptimization = true;
+		r.usePartialCommitOptimization = true;
+		r.useSpanOptimization = true;
                 
 		long startTime= System.currentTimeMillis();
         Integer position = r.match(gramatica, texto);

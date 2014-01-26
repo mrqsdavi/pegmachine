@@ -22,6 +22,22 @@ public class Regex {
 	public boolean useSpanOptimization = false;
 	public boolean useFailTwiceOptimization = false;
 
+	@SuppressWarnings("static-access")
+	public Padrao compile(String padrao){
+		
+		InputStream is = new ByteArrayInputStream(padrao.getBytes());
+		AnalizadorLexico lexico = new AnalizadorLexico(is);
+		parser parser = new parser(lexico);
+		try {
+			parser.parse();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return parser.padraoFinal;		
+	}
+	
 	public ArrayList<Instrucao> instrucoes(Padrao padrao){
 
 		instrucaoGramatica = new HashMap<>();
@@ -499,29 +515,21 @@ public class Regex {
 		}
 		
 	}
-
+	
 	public Integer match(String padraoString, String texto){
 		
-		InputStream is = new ByteArrayInputStream(padraoString.getBytes());
-		AnalizadorLexico lexico = new AnalizadorLexico(is);
-		parser parser = new parser(lexico);
-		try {
-			parser.parse();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		Padrao padraoCompilado = compile(padraoString);
 		
 		//System.out.println("Padrao Final: "+parser.padraoFinal.toString());
 		
-		return match(parser.padraoFinal, texto);
+		return match(padraoCompilado, texto);
 	}
 	
 	public Integer match(Padrao padrao, String texto){
 		
 		ArrayList<Instrucao> instrucoes = instrucoes(padrao);
 		
-		imprimirInstrucoes(instrucoes, null);
+		//imprimirInstrucoes(instrucoes, null);
 		Maquina maquina = new Maquina(texto, instrucoes);
 		maquina.run();
 		return maquina.getPosicaoEntrada();
