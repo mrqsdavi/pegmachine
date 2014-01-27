@@ -2,6 +2,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map.Entry;
 
 import Estruturas.*;
 import Instrucoes.*;
@@ -16,6 +17,7 @@ public class Regex {
 	private Instrucao next = null;
 	private Instrucao previous = null;
 	private HashMap<String, Instrucao> instrucaoGramatica;
+	HashMap<String, Instrucao> instrucaoGramaticaTemporaria;
 	
 	public boolean useHeadFailOptimization = false;
 	public boolean usePartialCommitOptimization = false;
@@ -41,13 +43,37 @@ public class Regex {
 	public ArrayList<Instrucao> instrucoes(Padrao padrao){
 
 		instrucaoGramatica = new HashMap<>();
+		instrucaoGramaticaTemporaria = new HashMap<>();
+		
+		
+		if(padrao.getTipo()==TipoPadrao.GRAMATICA){
+			instrucaoGramaticaTemporaria.put(padrao.gramatica().getNome(), new ICall("TEMP"));
+			for(int i = 0; i < padrao.gramatica().getSubgramaticas().size(); i++){
+				Gramatica subgramatica = padrao.gramatica().getSubgramaticas().get(i);
+				instrucaoGramaticaTemporaria.put(subgramatica.getNome(), new ICall("TEMP"));
+			}
+		}
+
+		
 		end = new IEnd();
 		next = end;
 		ArrayList<Instrucao> retorno = instrucoesDoPadrao(padrao);
 		retorno.add(end);
 
-		for(int i = 0; i < retorno.size(); i++){
+		for(int i = 0; i < retorno.size(); i++){	
+			
 			Instrucao instrucaoAtual = retorno.get(i);
+			
+			for(Entry<String, Instrucao> entry : instrucaoGramaticaTemporaria.entrySet()) {
+			    String key = entry.getKey();
+			    Instrucao value = entry.getValue();
+			    
+			    if(instrucaoAtual.getInstrucaoDesvio() == value){
+			    	instrucaoAtual.setInstrucaoDesvio(instrucaoGramatica.get(key));
+			    }
+			    
+			}
+			
 			if(instrucaoAtual.getInstrucaoDesvio()!=null){
 				instrucaoAtual.setIndexDesvio(retorno.indexOf(instrucaoAtual.getInstrucaoDesvio()));
 			}
@@ -77,9 +103,9 @@ public class Regex {
 				next = returnGramatica;
 				previous = previousTemporaria;
 				
-				instrucaoGramatica.put(padrao.gramatica().getNome(), previous);
-				
 				ArrayList<Instrucao> instrucoes = instrucoesDoPadrao(padrao.gramatica().getPadrao());
+				
+				instrucaoGramatica.put(padrao.gramatica().getNome(), instrucoes.get(0));
 				
 				previous = instrucoes.get(0);
 				callGramatica.setInstrucaoDesvio(previous);
@@ -100,8 +126,11 @@ public class Regex {
 					ArrayList<Instrucao> instrucoesSubgramatica = instrucoesDoPadrao(subgramatica);
 					instrucoesSubgramatica.remove(0);
 					instrucoesSubgramatica.remove(0);
+					
+					instrucaoGramatica.put(subgramatica.getNome(), instrucoesSubgramatica.get(0));
 					retorno.addAll(instrucoesSubgramatica);
 				}
+				
 			
 		}
 		break;
@@ -388,7 +417,7 @@ public class Regex {
 		
 		case CHAMADA:{
 			ICall call = new ICall("");
-			call.setInstrucaoDesvio(instrucaoGramatica.get(padrao.chamada().getLabel()));
+			call.setInstrucaoDesvio(instrucaoGramaticaTemporaria.get(padrao.chamada().getLabel()));
 			retorno.add(call);
 		}
 			break;
@@ -529,7 +558,7 @@ public class Regex {
 		
 		ArrayList<Instrucao> instrucoes = instrucoes(padrao);
 		
-		//imprimirInstrucoes(instrucoes, null);
+		imprimirInstrucoes(instrucoes, null);
 		Maquina maquina = new Maquina(texto, instrucoes);
 		maquina.run();
 		return maquina.getPosicaoEntrada();
@@ -538,19 +567,17 @@ public class Regex {
 	public static void main(String[] args) {
 		
 		Regex regex = new Regex();
-		regex.useHeadFailOptimization = true;
+		//regex.useHeadFailOptimization = true;
 		//System.out.println("Texto Casado " + regex.match("S <- 'davi'D'bola'*\nD <- 'teste'*?", "davitestebola"));
 		
 		//HeadFail example
 		//System.out.println("Texto Casado " + regex.match("S <- 'ana' / .S", "tetstetgbshsghsghsghanajkjdkjskskjs"));
-		
-		//PartialCommit example
-		//regex.usePartialCommitOptimization = true;
-		/*System.out.println("Texto Casado " + regex.match("Expr <- Soma\n"
+
+		System.out.println("Texto Casado " + regex.match("Expr <- Soma\n"
 				+"Valor <- [0-9]+ / '(' Expr ')'\n"
 				+"Produto <- Valor (('*' / '/') Valor)*\n"
-				+"Soma <- Produto (('+' / '-') Produto)*", "1+2*2"));*/
-		System.out.println("Texto Casado " + regex.match("S <- 'livro' / . S", "aaaaaaaaalivroaaa"));
+				+"Soma <- Produto (('+' / '-') Produto)*", "(1+2)*2+2*2"));
+		//System.out.println("Texto Casado " + regex.match("S <- 'livro' / . S", "aaaaaaaaalivroaaa"));
 	}
 	
 }
