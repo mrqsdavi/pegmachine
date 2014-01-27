@@ -40,6 +40,38 @@ public class Regex {
 		return parser.padraoFinal;		
 	}
 	
+	public Integer find(Padrao padrao, String entrada){
+		Integer[] procura = findC(padrao, entrada);
+		if(procura != null){
+			return procura[0];
+		}
+		return null;
+	}
+	
+	public Integer find(String padrao, String entrada){
+		Integer[] procura = findC(padrao, entrada);
+		if(procura != null){
+			return procura[0];
+		}
+		return null;
+	}
+	
+	public Integer[] findC(Padrao padrao, String entrada){
+		Padrao padraoBusca = compile("S<- {"+padrao+"} / . S");
+		ArrayList<Instrucao> instrucoes = instrucoes(padraoBusca);
+		Maquina maquina = new Maquina(entrada, instrucoes);
+		maquina.run();
+		if(maquina.getCapturas().size() > 0){
+			return new Integer[]{maquina.getCapturas().get(0).getPosicaoInicial(), maquina.getCapturas().get(0).getPosicaoFinal()};
+		}
+		return null;
+	}
+	
+	public Integer[] findC(String padrao, String entrada){
+		Padrao padraoCompilado = compile(padrao);
+		return findC(padraoCompilado, entrada);
+	}
+	
 	public ArrayList<Instrucao> instrucoes(Padrao padrao){
 
 		instrucaoGramatica = new HashMap<>();
@@ -573,11 +605,11 @@ public class Regex {
 		//HeadFail example
 		//System.out.println("Texto Casado " + regex.match("S <- 'ana' / .S", "tetstetgbshsghsghsghanajkjdkjskskjs"));
 
-		System.out.println("Texto Casado " + regex.match("Expr <- Soma\n"
+		/*System.out.println("Texto Casado " + regex.match("Expr <- Soma\n"
 				+"Valor <- [0-9]+ / '(' Expr ')'\n"
 				+"Produto <- Valor (('*' / '/') Valor)*\n"
-				+"Soma <- Produto (('+' / '-') Produto)*", "(1+2)*2+2*2"));
-		//System.out.println("Texto Casado " + regex.match("S <- 'livro' / . S", "aaaaaaaaalivroaaa"));
+				+"Soma <- Produto (('+' / '-') Produto)*", "(1+2)*2+2*2"));*/
+		System.out.println("Texto Casado " + regex.find("'livro'", "aaaaaaaaalivroaaa"));
 	}
 	
 }

@@ -1,6 +1,8 @@
 import java.util.ArrayList;
 
+import Estruturas.Capture;
 import Instrucoes.Instrucao;
+import Instrucoes.TipoCapture;
 
 public class Maquina {
 
@@ -38,6 +40,10 @@ public class Maquina {
 	
 	public int getPosicaoEntrada(){
 		return estado.getI();
+	}
+	
+	public ArrayList<Capture> getCapturas(){
+		return estado.getCapturas();
 	}
 	
 	public void run(){
@@ -104,7 +110,7 @@ public class Maquina {
 			case CHOICE:{
 				EstadoMaquina novoEstado = new EstadoMaquina();
 				novoEstado.setP(instrucao.getIndexDesvio());
-				novoEstado.setCapturas(estado.getCapturas());
+				novoEstado.setCapturas(estado.copiaCapturas());
 				novoEstado.setI(estado.getI());
 				estado.addEstado(novoEstado);
 				estado.incP();
@@ -183,7 +189,16 @@ public class Maquina {
 				break;
 
 			case CAPTURE:
-				//REFAZER
+				if(instrucao.ICapture().getTipo() == TipoCapture.BEGIN){
+					Capture newCapute = new Capture();
+					newCapute.setPosicaoInicial(estado.getI());
+					estado.insertCapture(newCapute);
+				}else{
+					Capture updateCapture = estado.popLastCapture();
+					updateCapture.setPosicaoFinal(estado.getI());
+					estado.addCaptura(updateCapture);
+				}
+				estado.incP();
 				break;
 				
 			default:
@@ -196,7 +211,9 @@ public class Maquina {
 				if(estadoAntigo!=null){
 					estado.setP(estadoAntigo.getP());
 					estado.setI(estadoAntigo.getI());
-					
+					if(estadoAntigo.getCapturas() != null){
+						estado.setCapturas(estadoAntigo.getCapturas());
+					}					
 				}else{
 					estado.setI(-1);
 					break;
@@ -205,7 +222,7 @@ public class Maquina {
 			}
 			
 		}
-		
+				
 		/*if(!rodouEnd){
 			estado.setI(-1);
 		}*/
