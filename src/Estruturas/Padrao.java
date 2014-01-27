@@ -1,7 +1,7 @@
 package Estruturas;
 
 public abstract class Padrao {
-
+	
 	public TipoPadrao getTipo() {
 		return null;
 	}
