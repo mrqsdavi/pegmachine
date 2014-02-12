@@ -590,7 +590,7 @@ public class Regex {
 		
 		ArrayList<Instrucao> instrucoes = instrucoes(padrao);
 		
-		imprimirInstrucoes(instrucoes, null);
+		//imprimirInstrucoes(instrucoes, null);
 		Maquina maquina = new Maquina(texto, instrucoes);
 		maquina.run();
 		return maquina.getPosicaoEntrada();

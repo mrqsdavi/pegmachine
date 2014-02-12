@@ -6,10 +6,25 @@ import java.util.Set;
 public class Conjunto extends Padrao{
 
 	private String texto;
+	static Set<Character> todosOsCarcteres;
 	private Set<Character> conjuntoCaracteres;
 	
 	public Conjunto(String texto){
+		
+		if(todosOsCarcteres == null){
+			todosOsCarcteres = new HashSet<>();
+			
+			for(int i = 32; i < 127; i++){
+				todosOsCarcteres.add((char) i);
+			}
+			
+		}
+		
+		todosOsCarcteres.remove('[');
+		todosOsCarcteres.remove(']');
+		
 		setTexto(texto);
+		
 	}
 	
 	public String getTexto() {
@@ -18,6 +33,17 @@ public class Conjunto extends Padrao{
 	
 	public void setTexto(String texto) {
 		this.texto = texto;
+		
+		if(texto.charAt(0)=='^'){
+			conjuntoCaracteres = new HashSet<Character>();
+			conjuntoCaracteres.addAll(todosOsCarcteres);
+			for(int i = 0; i < texto.length(); i++){
+				char caractereAtual = texto.charAt(i);
+				conjuntoCaracteres.remove(caractereAtual);
+			}
+			
+			return;
+		}
 		
 		conjuntoCaracteres = new HashSet<Character>();
 		for(int i = 0; i < texto.length(); i++){

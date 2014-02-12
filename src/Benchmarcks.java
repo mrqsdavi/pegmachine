@@ -48,11 +48,11 @@ public class Benchmarcks {
 	    benchmark("([a-zA-Z]+'Joseph')",1);*/
 	    
 	    System.out.println("\nEffectiveness of optimizations");
-	    benchmark("S <- 'Alpha' / . S", 2);
-	    benchmark("(!'Alpha' .)* 'Alpha'", 2);
-	    benchmark("S <- 'Alpha' /.~'A' S", 2);
-	    benchmark("(!([a-zA-Z]+ ' '* 'Alpha') .)*", 2);
-	    benchmark("(!([a-zA-Z]+ ' '* 'Alpha') .)*", 2);
+	    benchmark("S <- 'transparent' / . S", 2);
+	    benchmark("(!'transparent' .)* 'transparent'", 2);
+	    benchmark("S <- 'transparent' /.[^t]* S", 2);
+	    benchmark("(!([a-zA-Z]+ ' '* 'transparent') .)*", 2);
+	    benchmark("(!([a-zA-Z]+ ' '* 'transparent') .)*", 2);
 		
 	}
 	
