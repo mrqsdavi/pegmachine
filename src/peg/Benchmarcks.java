@@ -1,3 +1,4 @@
+package peg;
 import java.io.File;
 import java.io.IOException;
 import java.util.Scanner;
@@ -49,10 +50,10 @@ public class Benchmarcks {
 	    
 	    System.out.println("\nEffectiveness of optimizations");
 	    benchmark("S <- 'transparent' / . S", 2);
-	    benchmark("(!'transparent' .)* 'transparent'", 2);
+	    /*benchmark("(!'transparent' .)* 'transparent'", 2);
 	    benchmark("S <- 'transparent' /.[^t]* S", 2);
 	    benchmark("(!([a-zA-Z]+ ' '* 'transparent') .)*", 2);
-	    benchmark("(!([a-zA-Z]+ ' '* 'transparent') .)*", 2);
+	    benchmark("(!([a-zA-Z]+ ' '* 'transparent') .)*", 2);*/
 		
 	}
 	

@@ -1,3 +1,4 @@
+package peg;
 import java.util.ArrayList;
 
 import Estruturas.Capture;
@@ -6,15 +7,16 @@ import Instrucoes.TipoCapture;
 
 public class Maquina {
 
-	private String entrada;
+	private char[] entrada;
 	private Instrucao instrucoes[];
 	EstadoMaquina estado;
 	boolean rodouEnd = false;
+	int tamanhoEntrada;
 	
 	public Maquina(String entrada, ArrayList<Instrucao> instrucoes){
 		Instrucao [] insArray = new Instrucao[instrucoes.size()];
 		insArray = instrucoes.toArray(insArray);
-		this.setEntrada(entrada);
+		this.setEntrada(entrada.toCharArray());
 		this.setInstrucoes(insArray);
 		estado = new EstadoMaquina();
 		estado.inicializar();
@@ -22,12 +24,13 @@ public class Maquina {
 		estado.setP(0);
 	}
 
-	public String getEntrada() {
+	public char[] getEntrada() {
 		return entrada;
 	}
 
-	public void setEntrada(String entrada) {
+	public void setEntrada(char[] entrada) {
 		this.entrada = entrada;
+		tamanhoEntrada = entrada.length;
 	}
 
 	public Instrucao[] getInstrucoes() {
@@ -57,10 +60,10 @@ public class Maquina {
 			switch (instrucao.getTipoInstrucao()) {
 			case CHAR:
 				if(!instrucao.IChar().isVazio()){
-					if(estado.getI() >= entrada.length()){
+					if(estado.getI() >= tamanhoEntrada){
 						//System.out.println("Texto Acabou");
 						falhou = true;
-					}else if(entrada.charAt(estado.getI()) == instrucao.IChar().getCaracter()){
+					}else if(entrada[estado.getI()] == instrucao.IChar().getCaracter()){
 						estado.incI();
 						//System.out.println(estado.getI()+" Casou "+instrucao.IChar().getCaracter());
 					}else{
@@ -72,10 +75,10 @@ public class Maquina {
 				break;
 				
 			case TESTCHAR:
-				if(estado.getI() >= entrada.length()){
+				if(estado.getI() >= tamanhoEntrada){
 					//System.out.println("Texto Acabou");
 					falhou = true;
-				}else if(entrada.charAt(estado.getI()) == instrucao.ITestChar().getCaracter()){
+				}else if(entrada[estado.getI()] == instrucao.ITestChar().getCaracter()){
 					estado.incI();
 					estado.incP();
 					//System.out.println(estado.getI()+" Casou "+instrucao.IChar().getCaracter());
@@ -86,9 +89,9 @@ public class Maquina {
 				
 			case CHARSET:
 				//System.out.println(estado.getI()+" ENTRADA: "+entrada);
-				if(estado.getI() >= entrada.length()){
+				if(estado.getI() >= tamanhoEntrada){
 					falhou = true;
-				}else if(instrucao.ICharset().isCharecterIn(entrada.charAt(estado.getI()))){
+				}else if(instrucao.ICharset().isCharecterIn(entrada[estado.getI()])){
 					//System.out.println("Caractere no conjunto "+entrada.charAt(estado.getI()));
 					estado.incI();
 				}else{
@@ -99,7 +102,7 @@ public class Maquina {
 				break;
 				
 			case ANY:
-				if(estado.getI() >= entrada.length()){
+				if(estado.getI() >= tamanhoEntrada){
 					falhou = true;
 				}else{
 					estado.incI();
@@ -150,16 +153,16 @@ public class Maquina {
 				break;
 				
 			case SPAN:
-				for(; estado.getI() < entrada.length(); estado.incI()){
-					char c = entrada.charAt(estado.getI());
+				for(; estado.getI() < tamanhoEntrada; estado.incI()){
+					char c = entrada[estado.getI()];
 					if(!instrucao.ISpan().contem(c)) break;
 				}
 				estado.incP();
 				break;
 				
 			case FIND:
-				for(; estado.getI() < entrada.length(); estado.incI()){
-					char c = entrada.charAt(estado.getI());
+				for(; estado.getI() < tamanhoEntrada; estado.incI()){
+					char c = entrada[estado.getI()];
 					if(instrucao.IFind().contem(c)) break;
 				}
 				estado.incP();
